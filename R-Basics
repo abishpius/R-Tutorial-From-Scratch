@@ -1,0 +1,13 @@
+#~R
+
+#What is the sum of the first 2000 positive integers?
+n <- 2000
+n*(n+1)/2
+
+# log to the base 20 of 2000
+log(base = 20, 2000)
+
+#sqrt of the log to the base 20 of 16000:
+log(base = 20, 16000)
+
+
