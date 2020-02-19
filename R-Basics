@@ -1,4 +1,4 @@
-#~R
+#~usr/bin/R
 
 #What is the sum of the first 2000 positive integers?
 n <- 2000
@@ -11,3 +11,33 @@ log(base = 20, 2000)
 log(base = 20, 16000)
 
 
+#Load package and data
+
+library(dslabs)
+data(mtcars)
+
+# Use the function names to extract the variable names 
+names(mtcars)
+
+# To access the miles/US gallon variable from the mtcars dataset use this code:
+mpg <- mtcars$mpg 
+
+# To determine the class of object `mpg` we use this code:
+class(mpg)
+
+# Use the accessor to extract horsepower and assign it to a
+a <- mtcars$hp
+# Determine the class of a
+class(a)
+
+# Extracting mpg data with the square brackets:
+o <- mtcars[["mpg"]] 
+
+# Confirm these two are the same
+identical(o, mpg)
+
+# Determine the number of miles/US gallon included in this variable 
+length(levels(mpg)) #The function levels shows us the categories for the factor.
+
+#Another way to obtain the frequencies, like above
+table(mpg)
