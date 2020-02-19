@@ -1,0 +1,18 @@
+What is the probability of not seeing a 20 when rolling a 20-sided die four times?
+# Assign the variable 'p_no20' as the probability of not seeing a 20 on a single roll.
+p_no20 <- 1-(1/20)
+# Calculate the probability of not seeing a 20 on four rolls using `p_no20'.
+p_no20^4
+
+Suppose it is the NBA finals Raptors vs Warriors. The raptors have a 55% chance of winning each game.
+What is the probability that the Warriors will win at least 1 game in the first 4?
+# Assign the variable `p_rap_win` as the probability that the Raptors will win the first four games of the series.
+p_rap_win <- .55^4
+
+# Using the variable `p_rap_win`, calculate the probability that the Warriors win at least one game in the first four games of the series.
+1 - p_rap_win
+
+Now lets do a Monte Carlo Simulation 10000 times to see the Raptors chance at 4 game sweep.
+rap_win = replicate(B, {simulated_games <- sample(c("win","lose"), 4, replace = TRUE, prob = c(0.55, 0.45))
+all(simulated_games == "win")})
+mean(rap_win)
