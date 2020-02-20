@@ -16,3 +16,34 @@ Now lets do a Monte Carlo Simulation 10000 times to see the Raptors chance at 4 
 rap_win = replicate(B, {simulated_games <- sample(c("win","lose"), 4, replace = TRUE, prob = c(0.55, 0.45))
 all(simulated_games == "win")})
 mean(rap_win)
+
+Suppose the Raptors lose the first 2 games, what is the probability they win the series (Note prob of win/loss is 50/50).
+# Assign a variable 'n' as the number of remaining games
+n<-5
+# Create a vector of possible game outcomes, where 0 indicates a loss and 1 indicates a win for the Raptors.
+outcomes <- c(0,1)
+# Use the `rep` function on `list(outcomes)` to create list of length `n`.
+l <- rep(list(outcomes),n)
+# Create a data frame named that contains all combinations of possible outcomes for the remaining games.
+possibilities <- expand.grid(l) 
+# Create a vector that indicates whether each row in the data frame 'possibilities' contains enough wins for the Raptors to win the series.
+results <- rowSums(possibilities) >= 4
+# Calculate the probability that the Raptors win the series.
+mean(results)
+
+Now use Monte Carlo to Simulate the Raptors chance of winning after losing the first two games.
+B <- 10000
+results <- replicate(B,{sum(sample(c(0,1), 5, replace = TRUE)) >= 4})
+
+mean(results)
+
+Advanced: Suppose two teams A and B, where A is better than B.
+# Given a value 'p', the probability of winning the series 'N' for the underdog team B can be computed with the following function based on a Monte Carlo simulation:
+prob_win <- function(N, p){
+      B <- 10000
+      result <- replicate(B, {
+        b_win <- sample(c(1,0), N, replace = TRUE, prob = c(1-p, p))
+        sum(b_win)>=(N+1)/2
+        })
+      mean(result)
+    }
