@@ -1,0 +1,28 @@
+# Here is an example creating a numeric vector named cost
+cost <- c(50, 75, 90, 100, 150)
+# Here is an example of how to create a character vector
+food <- c("pizza", "burgers", "salads", "cheese", "pasta")
+
+Assign the food with its cost?
+names(cost) <- food
+
+What is the cost of the middle two food items?
+cost[2:3]
+
+Create a vector of numbers from 84 to 167 and get its length?
+v <- seq(84,167)
+length(v)
+
+Create a vector of every 9th number from 81 to 9000 and get its length?
+v <- seq(81,9000,9)
+length(v)
+
+Create a vector of 50 equally spaced elements for the numbers between 975 and 1175?
+v <- seq(975, 1175, length.out = 50)
+
+#Interesting side note 1L is an integer
+class(1L)
+
+#Vector coercion
+v <- (45,9,7,11,'w')
+v<-as.character()
