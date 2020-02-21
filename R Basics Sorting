@@ -1,0 +1,17 @@
+#Load package and data
+library(dslabs)
+data(mtcars)
+
+Access the `mpg` variable and store it in an object, sort that object and report 1st value 
+mpg <- mtcars$mpg
+mpg<-sort(mpg)
+mpg[1]
+
+From mtcars find the index of the smallest and largest horsepower
+which.min(mtcars$hp)
+which.max(mtcats$hp)
+
+# Note what we remove NA's with the ! operator
+x <- c(1, 2, 3)
+ind <- c(FALSE, TRUE, FALSE)
+x[!ind]
