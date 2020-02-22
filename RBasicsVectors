@@ -26,3 +26,11 @@ class(1L)
 #Vector coercion
 v <- (45,9,7,11,'w')
 v<-as.character()
+
+#Convert the following temperatures to Farenheit
+temp <- c(35, 88, 42, 84, 81, 30)
+temp <- (temp+32)*9/5)
+
+#Compute the Euler Sum of the first 4000 numbers using vectors
+x <- seq(1,4000)
+sum(1/x**2)
