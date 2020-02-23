@@ -1,0 +1,22 @@
+# Assign a variable 'alien_avg' as the average alien height.
+alien_avg <- 750
+
+# Assign a variable 'alien_sd' as the standard deviation for female heights.
+alien_sd <- 35
+
+# Using variables 'alien_avg' and 'alien_sd', calculate the probability that a randomly selected alien is shorter than 775 inches.
+pnorm(775, 750,35)
+
+# Using variables 'alien_avg' and 'alien_sd', calculate the probability that a randomly selected alien is 775 inches or taller.
+1-pnorm(775,750,35)
+
+#Find probability between the heights of 690 and 745 inches.
+pnorm(745,750,35)-pnorm(690,750,35)
+
+# Determine the height of a alien in the 99th percentile of the distribution.
+qnorm(.99,750,35)
+
+#Use Monte Carlo to estimate the max height in a population of 10000 aliens
+B <- 10000
+tall_alien <- replicate(B, {sample <- rnorm(10000, 750,35) max(sample)})
+hist(tall_alien)
