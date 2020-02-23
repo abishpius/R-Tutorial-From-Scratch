@@ -1,0 +1,9 @@
+#Save Horsepower from MT Cars
+hp <- mtcars$hp
+
+#Get indices of Horsepower below 250
+which(hp < 250)
+
+#Check if the following are in mtcars
+hpsample <- c(250, 500, 750)
+hpsample%in%mtcars$hp
