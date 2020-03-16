@@ -1,0 +1,23 @@
+#Install and load the Lahman library. This library contains a variety of datasets related to US professional baseball.
+library("Lahman")
+top <- Lahman::Batting %>% 
+  filter(yearID == 2016) %>%
+  arrange(desc(HR)) %>%    # arrange by descending HR count
+  slice(1:10)    # take entries 1-10
+top %>% as_tibble()
+
+#Inspect MASTER data frame, with demographic information on players
+Master %>% as_tibble()
+
+#Create table with the player ID, first name, last name, and number of HR for the top 10 players
+top_names <- top %>% left_join(Master) %>%
+    select(playerID, nameFirst, nameLast, HR)
+
+#Inspect the AwardsPlayers table. Filter awards to include only the year 2016.
+Awards_2016 <- Lahman::AwardsPlayers %>% filter(yearID == 2016)
+
+#How many players from the top 10 home run hitters won at least one award in 2016?
+length(intersect(Awards_2016$playerID, top_names$playerID))
+
+#How many players won an award in 2016 but were not one of the top 10 home run hitters?
+length(setdiff(Awards_2016$playerID, top_names$playerID))
