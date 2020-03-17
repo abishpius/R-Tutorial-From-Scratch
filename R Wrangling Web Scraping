@@ -1,0 +1,28 @@
+#Extract MLB Payroll Data
+library(rvest)
+url <- "https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm"
+h <- read_html(url)
+
+#Extract each table node
+nodes <- html_nodes(h, "table")
+
+#Which of the first four nodes are tables of team payroll?
+html_table(nodes[[1]])
+html_table(nodes[[2]])
+html_table(nodes[[3]])
+html_table(nodes[[4]])
+
+#Create a table called tab_1 using entry 10 of nodes. Create a table called tab_2 using entry 19 of nodes.
+#How many rows are in the joined data table?
+tab1<- html_table(nodes[[10]])
+tab1$X1 <- NULL #Need to remove first column for merging
+tab1 <- tab1[-1,] #First row has column titles need to remove
+tab1 <-setNames(tab1, c("Team", "Payroll", "Average")) #Reset Column Names in DF
+
+tab2<- html_table(nodes[[19]])
+tab2 <- tab2[-1,]
+tab2 <- setNames(tab2, c("Team", "Payroll", "Average"))
+
+tab3 <- full_join(tab1,tab2, by = "Team")
+tab3
+
