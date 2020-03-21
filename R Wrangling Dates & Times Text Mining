@@ -1,3 +1,4 @@
+data(
 library(dslabs)
 library(lubridate)
 options(digits = 3) 
@@ -27,3 +28,66 @@ names(which.max(reviews_by_year))    # name of year with most reviews
 reviews_by_hour <- table(hour(dates))    # count reviews by hour
 names(which.max(reviews_by_hour))    # name of hour with most reviews
 
+#Use gutenbergr library (may have to install)
+library(tidyverse)
+library(gutenbergr)
+library(tidytext)
+options(digits = 3)
+data(gutenberg_metadata)
+
+#How many different ID numbers for Pride and Prejuidice are returned?
+gutenberg_metadata %>%
+    filter(str_detect(title, "Pride and Prejudice"))
+    
+#What is the correct ID number?
+gutenberg_works(title == "Pride and Prejudice")$gutenberg_id
+
+#How many words are present in the book?
+book <- gutenberg_download(1342)
+words <- book %>%
+  unnest_tokens(word, text)
+nrow(words)
+
+#Remove stop words from the words object. Recall that stop words are defined in the stop_words data frame from the tidytext package.
+#How many words remain?
+words <- words %>% anti_join(stop_words)
+nrow(words)
+
+#After removing stop words, detect and then filter out any token that contains a digit from words.
+#How many words remain?
+words <- words %>%
+  filter(!str_detect(word, "\\d"))
+nrow(words)
+
+#Analyze the most frequent words in the novel after removing stop words and tokens with digits.
+#How many words appear more than 100 times in the book?
+words %>%
+    count(word) %>%
+    filter(n > 100) %>%
+    nrow()
+ 
+ #What is the most common word in the book?
+ words %>%
+    count(word) %>%
+    top_n(1, n) %>%
+    pull(word)
+    
+ # How many times does that most common word appear?
+ words %>%
+    count(word) %>%
+    top_n(1, n) %>%
+    pull(n)
+    
+ #Define the afinn lexicon
+ afinn <- get_sentiments("afinn")
+ 
+ #How many elements of words have sentiments in the afinn lexicon?
+afinn_sentiments <- inner_join(afinn, words)
+nrow(afinn_sentiments)
+
+# What proportion of words in afinn_sentiments have a positive value?
+mean(afinn_sentiments$value > 0)
+
+
+#How many elements of afinn_sentiments have a value of 4?
+sum(afinn_sentiments$value == 4)
