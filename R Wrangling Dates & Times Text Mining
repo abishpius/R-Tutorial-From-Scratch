@@ -1,0 +1,29 @@
+library(dslabs)
+library(lubridate)
+options(digits = 3) 
+
+#Using data from brexit_polls
+data(brexit_polls)
+
+#How many polls had a start date (startdate) in April (month number 4)?
+sum(month(brexit_polls$startdate) == 4)
+
+# How many polls ended in week of 2016-06-12
+sum(round_date(brexit_polls$enddate, unit = "week") == "2016-06-12")
+
+#Which weekeday did the greatest number of polls end?
+table(weekdays(brexit_polls$enddate))
+
+#Using data from movielens
+data(movielens)
+
+#Which year had the most movie reviews?
+
+dates <- as_datetime(movielens$timestamp)
+reviews_by_year <- table(year(dates))    # count reviews by year
+names(which.max(reviews_by_year))    # name of year with most reviews
+
+#Which hour of the day had the most movie reviews?
+reviews_by_hour <- table(hour(dates))    # count reviews by hour
+names(which.max(reviews_by_hour))    # name of hour with most reviews
+
