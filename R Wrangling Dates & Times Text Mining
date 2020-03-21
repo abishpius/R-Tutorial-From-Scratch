@@ -1,4 +1,4 @@
-data(
+
 library(dslabs)
 library(lubridate)
 options(digits = 3) 
