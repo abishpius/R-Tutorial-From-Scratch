@@ -1,0 +1,13 @@
+# Load the Lahman library. Filter the Teams data frame to include years from 1961 to 2001.
+# What is the correlation coefficient between number of runs per game and number of at bats per game?
+library(Lahman)
+library(dplyr)
+Teams_small <- Teams %>% filter(yearID %in% 1961:2001)
+cor(Teams_small$R/Teams_small$G, Teams_small$AB/Teams_small$G)
+
+
+#What is the correlation coefficient between win rate (number of wins per game) and number of errors per game?
+cor(Teams_small$W/Teams_small$G, Teams_small$E/Teams_small$G)
+
+#What is the correlation coefficient between doubles (X2B) per game and triples (X3B) per game?
+cor(Teams_small$X2B/Teams_small$G, Teams_small$X3B/Teams_small$G)
