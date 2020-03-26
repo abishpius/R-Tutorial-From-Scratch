@@ -1,0 +1,74 @@
+#Load the Lahman library and filter the Teams data frame to the years 1961-2001. Run a linear model in R predicting the number of runs per game based on both the number of bases on balls per game and the number of home runs per game. What is the coefficient for bases on balls?
+library(Lahman)
+bob <- Lahman::Teams %>% filter(yearID %in% c(1961:2001)) %>% mutate(RG = R/G, BBG = BB/G, HRG = HR/G)
+fit <- lm(RG ~ HRG+BBG, data = bob)
+summary(fit)
+
+#Use the Following Data for the below Questions
+set.seed(1989) #if you are using R 3.5 or earlier
+set.seed(1989, sample.kind="Rounding") #if you are using R 3.6 or later
+library(HistData)
+data("GaltonFamilies")
+options(digits = 3)    # report 3 significant digits
+
+female_heights <- GaltonFamilies %>%     
+    filter(gender == "female") %>%     
+    group_by(family) %>%     
+    sample_n(1) %>%     
+    ungroup() %>%     
+    select(mother, childHeight) %>%     
+    rename(daughter = childHeight)
+#Fit a linear regression model predicting the mothers' heights using daughters' heights. 
+#What is the slope of the model?
+fit <- lm(mother ~ daughter, data = female_heights)
+fit$coef[2]
+#What the intercept of the model?
+fit$coef[1]
+#What the intercept of the model?
+predict(fit)[1]
+#What is the actual height of the first mother in the dataset?
+female_heights$mother[1]
+
+
+#For the following Questions use and modify this code:library(Lahman)
+bat_02 <- Batting %>% filter(yearID == 2002) %>%
+    mutate(pa = AB + BB, singles = (H - X2B - X3B - HR)/pa, bb = BB/pa) %>%
+    filter(pa >= 100) %>%
+    select(playerID, singles, bb)
+    
+#How many players had a single rate mean_singles of greater than 0.2 per plate appearance over 1999-2001?   
+bat_99_01 <- Batting %>% filter(yearID %in% 1999:2001) %>%
+    mutate(pa = AB + BB, singles = (H - X2B - X3B - HR)/pa, bb = BB/pa) %>%
+    filter(pa >= 100) %>%
+    group_by(playerID) %>%
+    summarize(mean_singles = mean(singles), mean_bb = mean(bb))
+sum(bat_99_01$mean_singles > 0.2)
+
+#How many players had a BB rate mean_bb of greater than 0.2 per plate appearance over 1999-2001?
+sum(bat_99_01$mean_bb > 0.2)
+
+#What is the correlation between 2002 singles rates and 1999-2001 average singles rates?
+dat <- inner_join(bat_02, bat_99_01)
+cor(dat$singles, dat$mean_singles)
+
+#What is the correlation between 2002 BB rates and 1999-2001 average BB rates?
+cor(dat$bb, dat$mean_bb)
+
+#Visualize Distributions
+dat %>%
+    ggplot(aes(singles, mean_singles)) +
+    geom_point() + geom_smooth(method = "lm")
+dat %>%
+    ggplot(aes(bb, mean_bb)) +
+    geom_point() + geom_smooth(method = "lm")
+
+#Fit a linear model to predict 2002 singles given 1999-2001 mean_singles.
+#What is the coefficient of mean_singles, the slope of the fit?
+fit_singles <- lm(singles ~ mean_singles, data = dat)
+fit_singles$coef[2]
+
+#What is the coefficient of mean_bb, the slope of the fit?
+fit_bb <- lm(bb ~ mean_bb, data = dat)
+fit_bb$coef[2]
+
+
