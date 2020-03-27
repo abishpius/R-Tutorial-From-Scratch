@@ -1,0 +1,36 @@
+#Load the Following Dataset
+library(tidyverse)
+library(HistData)
+data("GaltonFamilies")
+set.seed(1) # if you are using R 3.5 or earlier
+set.seed(1, sample.kind = "Rounding") # if you are using R 3.6 or later
+galton <- GaltonFamilies %>%
+    group_by(family, gender) %>%
+    sample_n(1) %>%
+    ungroup() %>% 
+    gather(parent, parentHeight, father:mother) %>%
+    mutate(child = ifelse(gender == "female", "daughter", "son")) %>%
+    unite(pair, c("parent", "child"))
+
+galton
+
+#How many father-daughter pairs are in the dataset? How many mother-son pairs are in the dataset?
+galton %>%
+    group_by(pair) %>%
+    summarize(n = n())
+    
+# Calculate the correlation coefficients for fathers and daughters, fathers and sons, mothers and daughters and mothers and sons.
+galton %>%
+    group_by(pair) %>%
+    summarize(cor = cor(parentHeight, childHeight))
+    
+#Use lm() and the broom package to fit regression lines for each parent-child pair type. Compute the least squares estimates, standard errors, confidence intervals and p-values for the parentHeight coefficient for each pair.
+library(broom)
+galton %>%
+    group_by(pair) %>%
+    do(tidy(lm(childHeight ~ parentHeight, data = .), conf.int = TRUE)) %>%
+    filter(term == "parentHeight")
+    
+#Observe the confidence intervals for family pairs
+library(broom)
+galton %>% group_by(pair) %>% do(tidy(lm(childHeight~parentHeight, data=.), conf.int = TRUE)) %>% filter(term == "parentHeight" & p.value < .05) %>% select(pair,estimate, conf.low, conf.high) %>% ggplot(aes(pair, y = estimate, ymin = conf.low, ymax = conf.high)) + geom_errorbar() + geom_point()
