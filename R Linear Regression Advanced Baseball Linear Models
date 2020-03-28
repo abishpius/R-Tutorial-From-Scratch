@@ -1,0 +1,28 @@
+#Use the Teams data frame from the Lahman package. Fit a multivariate linear regression model to obtain the effects of BB and HR on Runs (R) in 1971. Use the tidy() function in the broom package to obtain the results in a data frame.
+
+#What is the estimate for the effect of BB on runs? What is the estimate for the effect of HR on runs?
+library(Lahman)
+library(broom)
+Teams %>%
+    filter(yearID == 1971) %>%
+    lm(R ~ BB + HR, data = .) %>%
+    tidy()
+    
+# Make a scatterplot of the estimate for the effect of BB on runs over time (1961:2018) and add a trend line with confidence intervals.
+res <- Teams %>%
+    filter(yearID %in% 1961:2018) %>%
+    group_by(yearID) %>%
+    do(tidy(lm(R ~ BB + HR, data = .))) %>%
+    ungroup() 
+res %>%
+    filter(term == "BB") %>%
+    ggplot(aes(yearID, estimate)) +
+    geom_point() +
+    geom_smooth(method = "lm")
+    
+# Fit a linear model on the results to determine the effect of year on the impact of BB.
+#For each additional year, by what value does the impact of BB on runs change? What is the p-value of the effect?
+res %>%
+    filter(term == "BB") %>%
+    lm(estimate ~ yearID, data = .) %>%
+    tidy() %>%
