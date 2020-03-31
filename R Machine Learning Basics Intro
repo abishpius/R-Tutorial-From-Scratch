@@ -1,0 +1,5 @@
+#!/usr/bin/env Rscript
+#How many features are available to us for prediction in the mnist digits dataset?
+library(dslabs)
+mnist <- read_mnist()
+ncol(mnist$train$images)
