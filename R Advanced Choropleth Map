@@ -1,0 +1,37 @@
+#!/usr/bin/env Rscript
+#Use the Code to Generate a Choropleth Map of Covid-19 Cases in PA
+install.packages(c("mapproj", "maps")
+library(tidyverse)
+library(ggmap)
+
+#Create Map of PA
+Pennsylvania <- map_data(map="county", region="Pennsylvania")
+Pennsylvania <- as_tibble(Pennsylvania)
+head(Pennsylvania)
+
+#Load in Covid-19 Data from Health.PA.GOV
+corona <- read_csv('../input/corona-virus-pa/data-TJfyW.csv')
+
+#Wrangling
+colnames(corona)<- c("subregion", "cases", "deaths")
+corona <- as_tibble(corona)
+corona$subregion <- tolower(corona$subregion)
+head(corona)
+
+#Merge Data into one Tibble
+mapdata <- merge(Pennsylvania, corona, by="subregion")
+
+#ggplot Choropleth Map
+ggplot(mapdata) + geom_polygon(aes(x=long,y=lat,group=group, fill=cases), col = 'grey') +
+  coord_map() +
+      theme(plot.background=element_blank(), 
+            panel.background = element_rect(fill = "white",
+                                colour = "lightblue",
+                                size = 0.5, linetype = "solid"), 
+            axis.title=element_blank(), 
+            axis.ticks=element_blank(), 
+            axis.text=element_blank(),
+            plot.title = element_text(size = 25, face = "bold"))+ 
+    scale_fill_gradient(low = "beige",  high = "red")+
+ggtitle("Covid-19 in PA by County",
+          subtitle="Data from 3/27/20")
