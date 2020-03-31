@@ -1,5 +1,42 @@
+
 #!/usr/bin/env Rscript
 #How many features are available to us for prediction in the mnist digits dataset?
 library(dslabs)
 mnist <- read_mnist()
 ncol(mnist$train$images)
+
+# Use the following Data Set
+library(dslabs)
+library(dplyr)
+library(lubridate)
+data(reported_heights)
+
+dat <- mutate(reported_heights, date_time = ymd_hms(time_stamp)) %>%
+  filter(date_time >= make_date(2016, 01, 25) & date_time < make_date(2016, 02, 1)) %>%
+  mutate(type = ifelse(day(date_time) == 25 & hour(date_time) == 8 & between(minute(date_time), 15, 30), "inclass","online")) %>%
+  select(sex, type)
+
+y <- factor(dat$sex, c("Female", "Male"))
+x <- dat$type
+
+#What proportion of the inclass group is female? What proportion of the online group is female?
+dat %>% group_by(type) %>% summarize(prop_female = mean(sex == "Female"))
+
+
+#Report the accuracy of your prediction of sex based on type. Do not split the dataset
+y_hat <- ifelse(x == "online", "Male", "Female") %>% 
+      factor(levels = levels(y))
+mean(y_hat==y)
+
+#Generate a Confusion Matrix
+table(y_hat, y)
+
+
+#What is the sensitivity of this prediction? What is the specificity of this prediction? 
+library(caret)
+sensitivity(data = y_hat, reference = y)
+specificity(data = y_hat, reference = y)
+
+#What is the prevalence of females?
+mean(y == "Female")
+
