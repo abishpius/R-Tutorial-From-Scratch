@@ -1,0 +1,52 @@
+#!/usr/bin/R env
+
+library(tidyverse)
+library(caret)
+
+#Spawn data set
+set.seed(1, sample.kind="Rounding") 
+n <- 100
+Sigma <- 9*matrix(c(1.0, 0.5, 0.5, 1.0), 2, 2)
+dat <- MASS::mvrnorm(n = 100, c(69, 69), Sigma) %>%
+      data.frame() %>% setNames(c("x", "y"))
+
+#We will build 100 linear models using the data above and calculate the mean and standard deviation of the combined models. First, set the seed to 1 again (make sure to use sample.kind="Rounding" if your R is version 3.6 or later). Then, within a replicate() loop, (1) partition the dataset into test and training sets with p=0.5 and using dat$y to generate your indices, (2) train a linear model predicting y from x, (3) generate predictions on the test set, and (4) calculate the RMSE of that model. Then, report the mean and standard deviation (SD) of the RMSEs from all 100 models.
+
+set.seed(1, sample.kind="Rounding")
+rmse <- replicate(100, {
+	test_index <- createDataPartition(dat$y, times = 1, p = 0.5, list = FALSE)
+	train_set <- dat %>% slice(-test_index)
+	test_set <- dat %>% slice(test_index)
+	fit <- lm(y ~ x, data = train_set)
+ 	y_hat <- predict(fit, newdata = test_set)
+	sqrt(mean((y_hat-test_set$y)^2))
+})
+
+mean(rmse)
+sd(rmse)
+
+#Spawn new data set
+set.seed(1, sample.kind="Rounding") 
+Sigma <- matrix(c(1.0, 0.75, 0.75, 0.75, 1.0, 0.25, 0.75, 0.25, 1.0), 3, 3)
+dat <- MASS::mvrnorm(n = 100, c(0, 0, 0), Sigma) %>%
+	data.frame() %>% setNames(c("y", "x_1", "x_2"))
+
+#Note that y is correlated with both x_1 and x_2 but the two predictors are independent of each other, as seen by cor(dat).
+Set the seed to 1, then use the caret package to partition into a test and training set of equal size. Compare the RMSE when using just x_1, just x_2 and both x_1 and x_2. Train a single linear model for each (not 100 like in the previous questions).
+#Which of the three models performs the best (has the lowest RMSE)?
+set.seed(1, sample.kind="Rounding")
+test_index <- createDataPartition(dat$y, times = 1, p = 0.5, list = FALSE)
+train_set <- dat %>% slice(-test_index)
+test_set <- dat %>% slice(test_index)
+
+fit <- lm(y ~ x_1, data = train_set)
+y_hat <- predict(fit, newdata = test_set)
+sqrt(mean((y_hat-test_set$y)^2))
+
+fit <- lm(y ~ x_2, data = train_set)
+y_hat <- predict(fit, newdata = test_set)
+sqrt(mean((y_hat-test_set$y)^2))
+
+fit <- lm(y ~ x_1 + x_2, data = train_set)
+y_hat <- predict(fit, newdata = test_set)
+sqrt(mean((y_hat-test_set$y)^2))
