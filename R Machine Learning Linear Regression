@@ -1,4 +1,4 @@
-#!/usr/bin/R env
+#!/usr/bin/env Rscript
 
 library(tidyverse)
 library(caret)
