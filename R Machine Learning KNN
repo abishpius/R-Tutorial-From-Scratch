@@ -1,4 +1,4 @@
-#!/usr/bin/R env
+#!/usr/bin/env Rscript
 
 #Use Following Data Set
 library(dslabs)
