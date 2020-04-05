@@ -1,0 +1,58 @@
+#!/usr/bin/R env
+
+#Use Following Data Set
+library(dslabs)
+data(tissue_gene_expression)
+
+#Calculate the Euclidean distance between each observation and stores it in the object d?
+d <- dist(tissue_gene_expression$x)
+
+#compare the distances between observations 1 and 2 (both cerebellum), observations 39 and 40 (both colon), and observations 73 and 74 (both endometrium).
+ind <- c(1, 2, 39, 40, 73, 74)
+as.matrix(d)[ind,ind]
+
+#Make a plot of all the distances using the image() function to see the pattern
+image(as.matrix(d))
+
+
+#Use the Following Data
+library(dslabs)
+library(tidyverse)
+library(caret)
+data("heights")
+
+
+#set the seed to 1, then use the caret package to partition the dslabs heights data into a training and test set of equal size. Use the sapply() function to perform knn with k values of seq(1, 101, 3) and calculate F1 scores with the F_meas() function using the default value of the relevant argument.
+set.seed(1)
+test_index <- createDataPartition(heights$sex, times = 1, p = 0.5, list = FALSE)
+test_set <- heights[test_index, ]
+train_set <- heights[-test_index, ]     
+                
+ks <- seq(1, 101, 3)
+F_1 <- sapply(ks, function(k){
+	fit <- knn3(sex ~ height, data = train_set, k = k)
+	y_hat <- predict(fit, test_set, type = "class") %>% 
+		factor(levels = levels(train_set$sex))
+	F_meas(data = y_hat, reference = test_set$sex)
+})
+plot(ks, F_1)
+max(F_1)
+ks[which.max(F_1)]
+
+
+#Use Following Data Set
+library(dslabs)
+data(tissue_gene_expression)
+
+#set the seed to 1 and split the data into training and test sets. Then, report the accuracy you obtain from predicting tissue type using KNN with k = 1, 3, 5, 7, 9, 11 using sapply()
+set.seed(1)
+library(caret)
+y <- tissue_gene_expression$y
+x <- tissue_gene_expression$x
+test_index <- createDataPartition(y, list = FALSE)
+sapply(seq(1, 11, 2), function(k){
+	fit <- knn3(x[-test_index,], y[-test_index], k = k)
+	y_hat <- predict(fit, newdata = data.frame(x=x[test_index,]),
+				type = "class")
+mean(y_hat == y[test_index])
+})
