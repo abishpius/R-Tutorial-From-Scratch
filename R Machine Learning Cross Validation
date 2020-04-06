@@ -1,4 +1,4 @@
-#!/usr/bin/env RScript
+#!/usr/bin/env Rscript
 
 #Generate Random Predictors
 set.seed(1996, sample.kind="Rounding")
