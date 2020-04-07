@@ -1,0 +1,49 @@
+#!/usr/bin/env Rscript
+
+#Create a dataset of samples from just cerebellum and hippocampus, two parts of the brain, and a predictor matrix with 10 randomly selected columns using the following code:
+library(dslabs)
+library(caret)
+library(tidyverse)
+data("tissue_gene_expression")
+      
+set.seed(1993) #if using R 3.6 or later set.seed(1993, sample.kind="Rounding")
+ind <- which(tissue_gene_expression$y %in% c("cerebellum", "hippocampus"))
+y <- droplevels(tissue_gene_expression$y[ind])
+x <- tissue_gene_expression$x[ind, ]
+x <- x[, sample(ncol(x), 10)]
+
+#Use the train() function to estimate the accuracy of LDA.
+fit_lda <- train(x, y, method = "lda")
+fit_lda$results["Accuracy"]
+
+#Which TWO genes appear to be driving the algorithm (i.e. the two genes with the highest means)?
+t(fit_lda$finalModel$means) %>% data.frame() %>%
+	mutate(predictor_name = rownames(.)) %>%
+	ggplot(aes(cerebellum, hippocampus, label = predictor_name)) +
+	geom_point() +
+	geom_text() +
+	geom_abline()
+  
+ #Use the train() function to estimate the accuracy of QDA. \
+ fit_qda <- train(x, y, method = "qda")
+fit_qda$results["Accuracy"]
+
+#Which TWO genes drive the algorithm when using QDA instead of LDA (i.e. the two genes with the highest means)?
+t(fit_qda$finalModel$means) %>% data.frame() %>%
+	mutate(predictor_name = rownames(.)) %>%
+	ggplot(aes(cerebellum, hippocampus, label = predictor_name)) +
+	geom_point() +
+	geom_text() +
+	geom_abline()
+  
+#Which TWO genes drive the algorithm after performing the scaling?
+fit_lda <- train(x, y, method = "lda", preProcess = "center")
+fit_lda$results["Accuracy"]
+t(fit_lda$finalModel$means) %>% data.frame() %>%
+	mutate(predictor_name = rownames(.)) %>%
+	ggplot(aes(predictor_name, hippocampus)) +
+	geom_point() +
+	coord_flip()
+  
+  
+  
