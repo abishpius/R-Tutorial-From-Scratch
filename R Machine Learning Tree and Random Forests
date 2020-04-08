@@ -1,0 +1,44 @@
+#!/usr/bin/env Rscript
+
+#Create a simple dataset where the outcome grows 0.85 units on average for every increase in a predictor, using this code:
+library(rpart)
+n <- 1000
+sigma <- 0.25
+set.seed(1, sample.kind = "Rounding") 
+x <- rnorm(n, 0, 1)
+y <- 0.75 * x + rnorm(n, 0, sigma)
+dat <- data.frame(x = x, y = y)
+
+#Fit a regression tree
+fit <- rpart(y ~ ., data = dat) 
+
+#Examine the tree shape
+plot(fit, margin = 0.05)
+text(fit, cex = 0.75)
+
+#View the Regression decsion boundary on a scatter plot
+dat %>% 
+	mutate(y_hat = predict(fit)) %>% 
+	ggplot() +
+	geom_point(aes(x, y)) +
+  geom_step(aes(x, y_hat), col=2)
+  
+#Fit a random forest and view the decsion boundary
+library(randomForest)
+fit <- randomForest(y ~ x, data = dat)
+dat %>% 
+	mutate(y_hat = predict(fit)) %>% 
+	ggplot() +
+	geom_point(aes(x, y)) +
+	geom_step(aes(x, y_hat), col = "red")
+  
+#Examine the error of the fit per tree
+plot(fit)
+
+#Rerun random forest with node size 50 and max of 25 nodes
+fit <- randomForest(y ~ x, data = dat, nodesize = 50, maxnodes = 25)
+dat %>% 
+	mutate(y_hat = predict(fit)) %>% 
+	ggplot() +
+	geom_point(aes(x, y)) +
+	geom_step(aes(x, y_hat), col = "red")
