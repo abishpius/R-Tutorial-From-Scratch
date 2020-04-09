@@ -61,3 +61,75 @@ confusionMatrix(data = scmodel, reference = test_set$Survived)
 F_meas(data = sexmodel, reference = test_set$Survived)
 F_meas(data = classmodel, reference = test_set$Survived)
 F_meas(data = scmodel, reference = test_set$Survived)
+
+#Survival by Fare - LDA & QDA
+train_lda <- train(Survived ~ Fare, method = "lda", data = train_set)
+lda_preds <- predict(train_lda, test_set)
+mean(lda_preds == test_set$Survived)
+
+train_qda <- train(Survived ~ Fare, method = "qda", data = train_set)
+qda_preds <- predict(train_qda, test_set)
+mean(qda_preds == test_set$Survived)
+
+
+#Logistic Regression Survival with sex, pclass, fare and age
+train_glm <- train(Survived ~ Sex + Pclass + Fare + Age, method = "glm", data = train_set)
+glm_preds <- predict(train_glm, test_set)
+mean(glm_preds == test_set$Survived)
+train_glm_all <- train(Survived ~ ., method = "glm", data = train_set)
+glm_all_preds <- predict(train_glm_all, test_set)
+mean(glm_all_preds == test_set$Survived)
+
+# kNN model
+train_knn <- train(Survived ~ .,
+                   method = "knn",
+                   data = train_set,
+                   tuneGrid = data.frame(k = seq(3, 51, 2)))
+train_knn$bestTune
+knn_preds <- predict(train_knn, test_set)
+mean(knn_preds == test_set$Survived)
+
+#kNN with CrossValidation
+train_knn_cv <- train(Survived ~ .,
+                   method = "knn",
+                   data = train_set,
+                   tuneGrid = data.frame(k = seq(3, 51, 2)),
+                   trControl = trainControl(method = "cv", number = 10, p = 0.9))
+train_knn_cv$bestTune
+knn_cv_preds <- predict(train_knn_cv, test_set)
+mean(knn_cv_preds == test_set$Survived)
+
+#Decision Tree with best cp
+train_rpart <- train(Survived ~ ., 
+                     method = "rpart",
+                     tuneGrid = data.frame(cp = seq(0, 0.05, 0.002)),
+                     data = train_set)
+train_rpart$bestTune
+rpart_preds <- predict(train_rpart, test_set)
+mean(rpart_preds == test_set$Survived)
+
+#Plot Decision tree
+train_rpart$finalModel # inspect final model
+
+plot(train_rpart$finalModel, margin = 0.1)
+text(train_rpart$finalModel)
+
+#Random Forest
+train_rf <- train(Survived ~ .,
+                  data = train_set,
+                  method = "rf",
+                  ntree = 100,
+                  tuneGrid = data.frame(mtry = seq(1:7)))
+train_rf$bestTune
+rf_preds <- predict(train_rf, test_set)
+mean(rf_preds == test_set$Survived)
+varImp(train_rf)    # most important variable
+
+
+
+
+
+
+
+
+
