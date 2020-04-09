@@ -1,0 +1,63 @@
+#!/usr/bin/env Rscript
+
+#BACKGROUND: The Titanic was a British ocean liner that struck an iceberg and sunk on its maiden voyage in 1912 from the United Kingdom to New York. More than 1,500 of the estimated 2,224 passengers and crew died in the accident, making this one of the largest maritime disasters ever outside of war. The ship carried a wide range of passengers of all ages and both genders, from luxury travelers in first-class to immigrants in the lower classes. However, not all passengers were equally likely to survive the accident. You will use real data about a selection of 891 passengers to predict which passengers survived.
+
+#Initialize Data
+library(tidyverse)
+library(titanic)
+library(caret)
+library(rpart)
+
+# 3 significant digits
+options(digits = 3)
+
+# clean the data - `titanic_train` is loaded with the titanic package
+titanic_clean <- titanic_train %>%
+    mutate(Survived = factor(Survived),
+           Embarked = factor(Embarked),
+           Age = ifelse(is.na(Age), median(Age, na.rm = TRUE), Age), # NA age to median age
+           FamilySize = SibSp + Parch + 1) %>%    # count family members
+    select(Survived,  Sex, Pclass, Age, Fare, SibSp, Parch, FamilySize, Embarked)
+    
+
+#Split titanic_clean into test and training sets - after running the setup code, it should have 891 rows and 9 variables.
+test_index <- createDataPartition(titanic_clean$Survived, times = 1, p = 0.2, list = FALSE)
+test_set <- titanic_clean[test_index,]
+train_set <- titanic_clean[-test_index,]
+
+#Baseline prediction by guessing the outcome 
+y_hat <- sample(c(0,1), length(test_set$Survived), replace = TRUE) %>% factor(levels = levels(test_set$Survived))
+mean(y_hat == test_set$Survived)
+
+#Predicting survival by sex
+
+fem <- train_set %>% filter(Sex == "female") 
+sum(fem$Survived==1)/length(fem$Survived)
+male <- train_set %>% filter(Sex == "male") #Proportion of Sex survival
+
+sexmodel <- ifelse(test_set$Sex == "female", 1, 0) %>% factor(levels = levels(test_set$Survived))
+mean(sexmodel == test_set$Survived)
+sum(male$Survived == 1)/length(male$Survived) #Accuracy of model
+
+#Predicting survival by passenger class
+class <- titanic_clean %>% group_by(Pclass) %>% summarize(Survived = mean(Survived==1))
+class
+classmodel <- ifelse(test_set$Pclass == 1,1,0) %>% factor(levels = levels(test_set$Survived))
+mean(classmodel == test_set$Survived)
+
+#Predicting Survival by both class and sex
+scmodel <- titanic_clean %>% group_by(Sex, Pclass) %>% summarize(Survived = mean(Survived==1))
+scmodel
+
+#Confusion matrix of each Model
+sexmodel <- factor(sexmodel)
+classmodel <- factor(classmodel)
+scmodel <- factor(scmodel)
+confusionMatrix(data = sexmodel, reference = test_set$Survived)
+confusionMatrix(data = classmodel, reference = test_set$Survived)
+confusionMatrix(data = scmodel, reference = test_set$Survived)
+
+#F1 Scores of each Model
+F_meas(data = sexmodel, reference = test_set$Survived)
+F_meas(data = classmodel, reference = test_set$Survived)
+F_meas(data = scmodel, reference = test_set$Survived)
