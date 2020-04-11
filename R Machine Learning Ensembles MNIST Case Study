@@ -1,0 +1,44 @@
+#!/bin/usr/env Rscript
+
+#Load the data
+models <- c("glm", "lda", "naive_bayes", "svmLinear", "knn", "gamLoess", "multinom", "qda", "rf", "adaboost")
+library(caret)
+library(dslabs)
+set.seed(1) # use `set.seed(1, sample.kind = "Rounding")` in R 3.6 or later
+data("mnist_27")
+
+fits <- lapply(models, function(model){ 
+	print(model)
+	train(y ~ ., method = model, data = mnist_27$train)
+}) 
+    
+names(fits) <- models
+
+#What are the dimensions of the matrix of predictions?
+pred <- sapply(fits, function(object) 
+	predict(object, newdata = mnist_27$test))
+dim(pred)
+
+#Now compute accuracy for each model on the test set. Report the mean accuracy across all models.
+acc <- colMeans(pred == mnist_27$test$y)
+mean(acc)
+
+#Next, build an ensemble prediction by majority vote and compute the accuracy of the ensemble. Vote 7 if more than 50% of the models are predicting a 7, and 2 otherwise. What is the accuracy of the ensemble?
+votes <- rowMeans(pred == "7")
+y_hat <- ifelse(votes > 0.5, "7", "2")
+mean(y_hat == mnist_27$test$y)
+
+#How many of the individual methods do better than the ensemble?
+ind <- acc > mean(y_hat == mnist_27$test$y)
+sum(ind)
+models[ind]
+
+#What is the mean of these training set accuracy estimates?
+acc_hat <- sapply(fits, function(fit) min(fit$results$Accuracy))
+mean(acc_hat)
+
+#Now let's only consider the methods with an estimated accuracy of greater than or equal to 0.8 when constructing the ensemble. What is the accuracy of the ensemble now?
+ind <- acc_hat >= 0.8
+votes <- rowMeans(pred[,ind] == "7")
+y_hat <- ifelse(votes>=0.5, 7, 2)
+mean(y_hat == mnist_27$test$y)
