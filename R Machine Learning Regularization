@@ -1,0 +1,60 @@
+#!/usr/bin/env Rscript
+
+#Load all data 
+set.seed(1986, sample.kind="Rounding") 
+n <- round(2^rnorm(1000, 8, 1))
+
+mu <- round(80 + 2*rt(1000, 5))
+range(mu)
+schools <- data.frame(id = paste("PS",1:1000),
+                      size = n,
+                      quality = mu,
+                      rank = rank(-mu))
+ schools %>% top_n(10, quality) %>% arrange(desc(quality))
+
+mu <- round(80 + 2*rt(1000, 5))
+
+scores <- sapply(1:nrow(schools), function(i){
+       scores <- rnorm(schools$size[i], schools$quality[i], 30)
+       scores
+})
+schools <- schools %>% mutate(score = sapply(scores, mean))
+
+
+#What is the ID of the top school? What is the average score of the 10th school?
+schools %>% top_n(10, score) %>% arrange(desc(score)) %>% select(id, size, score)
+
+#What is the median school size overall? What is the median school size of the of the top 10 schools based on the score? What is the median school size of the bottom 10 schools based on the score?
+median(schools$size)
+schools %>% top_n(10, score) %>% .$size %>% median()
+schools %>% top_n(-10, score) %>% .$size %>% median()
+
+#Plot the average score versus school size
+schools %>% ggplot(aes(size, score)) +
+	geom_point(alpha = 0.5) +
+	geom_point(data = filter(schools, rank<=10), col = 2)
+  
+#Use regularization to pick the best schools. Write code that estimates the score above the average for each school but dividing by  n+α  instead of  n , with  n  the school size and  α  a regularization parameter. Try  α=25
+overall <- mean(sapply(scores, mean))
+alpha <- 25
+score_reg <- sapply(scores, function(x)  overall + sum(x-overall)/(length(x)+alpha))
+schools %>% mutate(score_reg = score_reg) %>%
+	top_n(10, score_reg) %>% arrange(desc(score_reg))
+  
+ #Using values of  α  from 10 to 250, find the  α  that minimizes the RMSE
+ alphas <- seq(10,250)
+rmse <- sapply(alphas, function(alpha){
+	score_reg <- sapply(scores, function(x) overall+sum(x-overall)/(length(x)+alpha))
+	sqrt(mean((score_reg - schools$quality)^2))
+})
+plot(alphas, rmse)
+alphas[which.min(rmse)]
+
+#Using best alpha, what is the ID of the top school now? What is the regularized average score of the 10th school now?
+alpha <- alphas[which.min(rmse)]  
+score_reg <- sapply(scores, function(x)
+	overall+sum(x-overall)/(length(x)+alpha))
+schools %>% mutate(score_reg = score_reg) %>%
+	top_n(10, score_reg) %>% arrange(desc(score_reg))
+  
+  
