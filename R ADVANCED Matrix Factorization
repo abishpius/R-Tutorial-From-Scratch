@@ -1,0 +1,104 @@
+#!/usr/bin/env Rscript
+
+#Load Data
+n <- 100
+k <- 8
+Sigma <- 64  * matrix(c(1, .75, .5, .75, 1, .5, .5, .5, 1), 3, 3) 
+m <- MASS::mvrnorm(n, rep(0, 3), Sigma)
+m <- m[order(rowMeans(m), decreasing = TRUE),]
+y <- m %x% matrix(rep(1, k), nrow = 1) + matrix(rnorm(matrix(n*k*3)), n, k*3)
+colnames(y) <- c(paste(rep("Math",k), 1:k, sep="_"),
+                 paste(rep("Science",k), 1:k, sep="_"),
+                 paste(rep("Arts",k), 1:k, sep="_"))
+                 
+                 
+#Visualize the 24 test scores for the 100 students by plotting an image
+my_image <- function(x, zlim = range(x), ...){
+	colors = rev(RColorBrewer::brewer.pal(9, "RdBu"))
+	cols <- 1:ncol(x)
+	rows <- 1:nrow(x)
+	image(cols, rows, t(x[rev(rows),,drop=FALSE]), xaxt = "n", yaxt = "n",
+			xlab="", ylab="",  col = colors, zlim = zlim, ...)
+	abline(h=rows + 0.5, v = cols + 0.5)
+	axis(side = 1, cols, colnames(x), las = 2)
+}
+
+my_image(y)
+
+#Examine the correlation between the test scores
+my_image(cor(y), zlim = c(-1,1))
+range(cor(y))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+
+#Compute the SVD of y
+s <- svd(y)
+names(s)
+y_svd <- s$u %*% diag(s$d) %*% t(s$v) #Check if it worked
+max(abs(y - y_svd))
+
+#Compute the sum of squares of columns of Y and the transformed  YV
+ss_y <- apply(y^2, 2, sum)
+ss_yv <- apply((y%*%s$v)^2, 2, sum)
+
+#Plot ss_y
+plot(ss_y)
+
+#Now notice that we didn't have to compute ss_yv because we already have the answer. How? Remember that  YV=UD  and because  U  is orthogonal, we know that the sum of squares of the columns of  UD  are the diagonal entries of  D  squared. Confirm this by plotting the square root of ss_yv versus the diagonal entries of  D .
+data.frame(x = sqrt(ss_yv), y = s$d) %>%
+ggplot(aes(x,y)) +
+geom_point()
+
+#So from the above we know that the sum of squares of the columns of  Y  (the total sum of squares) adds up to the sum of s$d^2 and that the transformation  YV  gives us columns with sums of squares equal to s$d^2. Now compute the percent of the total variability that is explained by just the first three columns of  YV .
+sum(s$d[1:3]^2) / sum(s$d^2)
+
+#We know that  U1d1,1 , the first column of  UD , has the most variability of all the columns of  UD . Earlier we looked at an image of  Y  using my_image(y), in which we saw that the student to student variability is quite large and that students that are good in one subject tend to be good in all. This implies that the average (across all subjects) for each student should explain a lot of the variability. Compute the average score for each student, plot it against  U1d1,1 , and describe what you find.
+plot(-s$u[,1]*s$d[1], rowMeans(y)
+
+#We already saw that we can rewrite  UD  as
+
+#U1d1,1+U2d2,2+⋯+Updp,p 
+#with  Uj  the j-th column of  U . This implies that we can rewrite the entire SVD as:
+
+#Y=U1d1,1V⊤1+U2d2,2V⊤2+⋯+Updp,pV⊤p 
+#with  Vj  the jth column of  V . Plot  U1 , then plot  V⊤1  using the same range for the y-axis limits, then make an image of U1d1,1V⊤1  and compare it to the image of  Y . Hint: use the my_image() function defined above. Use the drop=FALSE argument to assure the subsets of matrices are matrices.
+
+plot(s$u[,1], ylim = c(-0.25, 0.25))
+plot(s$v[,1], ylim = c(-0.25, 0.25))
+with(s, my_image((u[, 1, drop=FALSE]*d[1]) %*% t(v[, 1, drop=FALSE])))
+my_image(y)
+
+#We see that with just a vector of length 100, a scalar, and a vector of length 24, we can actually come close to reconstructing the a  100×24  matrix. This is our first matrix factorization:
+
+#Y≈d1,1U1V⊤1 
+
+#In the exercise in Q6, we saw how to calculate the percent of total variability explained. However, our approximation only explains the observation that good students tend to be good in all subjects. Another aspect of the original data that our approximation does not explain was the higher similarity we observed within subjects. We can see this by computing the difference between our approximation and original data and then computing the correlations. You can see this by running this code:
+
+resid <- y - with(s,(u[, 1, drop=FALSE]*d[1]) %*% t(v[, 1, drop=FALSE]))
+my_image(cor(resid), zlim = c(-1,1))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+
+#Now that we have removed the overall student effect, the correlation plot reveals that we have not yet explained the within subject correlation nor the fact that math and science are closer to each other than to the arts. So let's explore the second column of the SVD.
+
+#Repeat the previous exercise (Q10) but for the second column: Plot  U2 , then plot  V⊤2  using the same range for the y-axis limits, then make an image of  U2d2,2V⊤2  and compare it to the image of resid.
+plot(s$u[,2], ylim = c(-0.5, 0.5))
+plot(s$v[,2], ylim = c(-0.5, 0.5))
+with(s, my_image((u[, 2, drop=FALSE]*d[2]) %*% t(v[, 2, drop=FALSE])))
+my_image(resid)
+
+
+resid <- y - with(s,sweep(u[, 1:2], 2, d[1:2], FUN="*") %*% t(v[, 1:2]))
+my_image(cor(resid), zlim = c(-1,1))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+plot(s$u[,3], ylim = c(-0.5, 0.5))
+plot(s$v[,3], ylim = c(-0.5, 0.5))
+with(s, my_image((u[, 3, drop=FALSE]*d[3]) %*% t(v[, 3, drop=FALSE])))
+my_image(resid)
+
+
+resid <- y - with(s,sweep(u[, 1:3], 2, d[1:3], FUN="*") %*% t(v[, 1:3]))
+my_image(cor(resid), zlim = c(-1,1))
+axis(side = 2, 1:ncol(y), rev(colnames(y)), las = 2)
+y_hat <- with(s,sweep(u[, 1:3], 2, d[1:3], FUN="*") %*% t(v[, 1:3]))
+my_image(y, zlim = range(y))
+my_image(y_hat, zlim = range(y))
+my_image(y - y_hat, zlim = range(y))
