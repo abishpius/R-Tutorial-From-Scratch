@@ -1,0 +1,23 @@
+#!/usr/bin/env Rscript
+
+#Load the data
+library(dslabs)
+data(tissue_gene_expression)
+
+#Remove the row means and compute the distance between each observation
+d <- dist(tissue_gene_expression$x - rowMeans(tissue_gene_expression$x))
+
+#Make a hierarchical clustering plot and add the tissue types as labels
+h <- hclust(d)
+plot(h)
+
+#Run a k-means clustering on the data with  K=7 . Make a table comparing the identified clusters to the actual tissue types.
+cl <- kmeans(tissue_gene_expression$x, centers = 7)
+table(cl$cluster, tissue_gene_expression$y)
+
+#Select the 50 most variable genes and make a heatmap
+library(RColorBrewer)
+sds <- matrixStats::colSds(tissue_gene_expression$x)
+ind <- order(sds, decreasing = TRUE)[1:50]
+colors <- brewer.pal(7, "Dark2")[as.numeric(tissue_gene_expression$y)]
+heatmap(t(tissue_gene_expression$x[,ind]), col = brewer.pal(11, "RdBu"), scale = "row", ColSideColors = colors)
