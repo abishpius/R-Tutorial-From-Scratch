@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Load package and data
 library(dslabs)
 data(mtcars)
