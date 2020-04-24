@@ -1,2 +1,4 @@
+#!/usr/bin/env Rscript
+
 #plot horsepower vs the number of cylinders from mtcars
 plot(mtcars$cyl, mtcars$hp)
