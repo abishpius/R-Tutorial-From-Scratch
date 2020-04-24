@@ -1,4 +1,4 @@
-#~usr/bin/R
+#!/usr/bin/env Rscript
 
 #What is the sum of the first 2000 positive integers?
 n <- 2000
