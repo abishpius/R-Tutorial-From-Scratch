@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # Load the Lahman library. Filter the Teams data frame to include years from 1961 to 2001.
 # What is the correlation coefficient between number of runs per game and number of at bats per game?
 library(Lahman)
