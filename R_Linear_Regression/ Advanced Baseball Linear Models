@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Use the Teams data frame from the Lahman package. Fit a multivariate linear regression model to obtain the effects of BB and HR on Runs (R) in 1971. Use the tidy() function in the broom package to obtain the results in a data frame.
 
 #What is the estimate for the effect of BB on runs? What is the estimate for the effect of HR on runs?
