@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Load the Lahman library and filter the Teams data frame to the years 1961-2001. Run a linear model in R predicting the number of runs per game based on both the number of bases on balls per game and the number of home runs per game. What is the coefficient for bases on balls?
 library(Lahman)
 bob <- Lahman::Teams %>% filter(yearID %in% c(1961:2001)) %>% mutate(RG = R/G, BBG = BB/G, HRG = HR/G)
