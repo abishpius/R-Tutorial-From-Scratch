@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Load the Following Dataset
 library(tidyverse)
 library(HistData)
