@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Use this Dataset, may need to install packages
 set.seed(1989) #if you are using R 3.5 or earlier
 set.seed(1989, sample.kind="Rounding") #if you are using R 3.6 or later
