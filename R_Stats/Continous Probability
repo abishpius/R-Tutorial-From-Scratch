@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # Assign a variable 'alien_avg' as the average alien height.
 alien_avg <- 750
 
