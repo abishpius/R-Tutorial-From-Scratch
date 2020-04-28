@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 What is the probability of not seeing a 20 when rolling a 20-sided die four times?
 # Assign the variable 'p_no20' as the probability of not seeing a 20 on a single roll.
 p_no20 <- 1-(1/20)
