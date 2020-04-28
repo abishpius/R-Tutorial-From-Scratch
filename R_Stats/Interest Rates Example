@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Interest rate sampling model
 n <- 1000
 loss_per_foreclosure <- -200000
