@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Data from https://www.pnas.org/content/112/40/12349.abstract
 library(dslabs)
 data("research_funding_rates")
