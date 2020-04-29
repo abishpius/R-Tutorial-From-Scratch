@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Install and load the Lahman library. This library contains a variety of datasets related to US professional baseball.
 library("Lahman")
 top <- Lahman::Batting %>% 
