@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 #Download Data
 library(rvest)
 library(tidyverse)
