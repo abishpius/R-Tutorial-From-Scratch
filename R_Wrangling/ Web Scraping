@@ -1,3 +1,6 @@
+#!/usr/bin/env Rscript
+
+
 #Extract MLB Payroll Data
 library(rvest)
 url <- "https://web.archive.org/web/20181024132313/http://www.stevetheump.com/Payrolls.htm"
