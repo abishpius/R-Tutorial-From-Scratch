@@ -1,0 +1,57 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+KM Plots
+data is located at https://drive.google.com/file/d/1BY3vOXDQWSlRtK2mKhAtRwIR-vzoDm-4/view
+
+
+```{r}
+library(survival) 
+library(ggplot2) 
+```
+
+```{r}
+gender <- as.factor(g[,"gender"])
+fu_time <- g[,"fu_time"]
+death <- g[,"death"]
+```
+
+```{r}
+km_fit <- survfit(Surv(fu_time, death) ~ 1)
+
+plot(km_fit)
+```
+Survfit” fits a simple survival model that depends only on gender in terms of predictors: in this case there aren’t any predictors, so the model just has the intercept, denoted by “1”. The two arguments used by “Surv” are the follow-up time for each patient and whether they died. In our data, death=1 for people who had died by the end of the follow-up period, and death=0 for those still alive at that time. Technically, those people still alive are censored, because we don’t know when they’ll die (of course everyone does at some point). 
+
+```{r}
+summary(km_fit, times = c(1:7,30,60,90*(1:10))) 
+```
+
+Split Curve by Gender
+```{r}
+km_gender_fit <- survfit(Surv(fu_time, death) ~ gender) 
+
+plot(km_gender_fit)
+```
+
+```{r}
+survdiff(Surv(fu_time, death) ~ gender, rho=0)
+```
+
+```{r}
+age_65plus <- ifelse(g[,"age"]>=65,1,0)
+```
+```{r}
+table(age_65plus, exclude = NULL)
+```
+
+```{r}
+table(g$age,age_65plus, exclude = NULL)
+```
+
+```{r}
+survdiff(Surv(fu_time, death) ~ age_65plus, rho=0)
+```
+
