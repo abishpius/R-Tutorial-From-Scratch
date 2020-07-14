@@ -1,0 +1,45 @@
+library(quantmod)
+
+gold <- getSymbols("GOLDPMGBD228NLBM", src = "FRED", auto.assign = FALSE)
+gold <- na.omit(gold)
+gold <- gold["1979-12-31/2017-12-31"]
+
+Daily Returns of Gold Prices from FRED
+
+```{r}
+logret <- diff(log(gold))
+```
+```{r}
+head(logret)
+```
+
+```{r}
+logret <- diff(log(gold))[-1]
+round(tail(logret,3), 6)
+```
+
+```{r}
+ret <- exp(logret)-1
+round(tail(ret), 6)
+```
+
+Weekly, Monthly ect. Returns of Gold
+```{r}
+logret.w <- apply.weekly(logret,sum)
+logret.m <- apply.monthly(logret,sum)
+logret.q <- apply.quarterly(logret, sum)
+logret.y <- apply.yearly(logret, sum)
+
+```
+
+```{r}
+ret.w <- exp(logret.w) - 1
+ret.m <- exp(logret.m) - 1
+ret.q <- exp(logret.q) - 1
+ret.y <- exp(logret.y) - 1
+
+```
+
+```{r}
+round(head(logret.m),6)
+```
