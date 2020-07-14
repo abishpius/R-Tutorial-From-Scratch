@@ -1,0 +1,37 @@
+Finanacial Analysis
+
+```{r}
+library(quantmod)
+```
+
+```{r}
+wilsh <- getSymbols("WILL5000IND", src = "FRED", auto.assign = FALSE)
+wilsh <- na.omit(wilsh)
+```
+Fred gives data for all days and all data, it has NA sometimes for holidays
+```{r}
+wilsh <- wilsh["1979-12-31/2017-12-31"]
+names(wilsh) <- "TR"
+```
+
+```{r}
+head(wilsh)
+```
+
+Retrieve FRED Gold Prices
+```{r}
+gold <- getSymbols("GOLDPMGBD228NLBM", src = "FRED", auto.assign = FALSE)
+```
+
+```{r}
+gold <- na.omit(gold)
+```
+
+```{r}
+gold <- gold["1979-12-31/2017-12-31"]
+```
+
+```{r}
+tail(gold)
+```
+
