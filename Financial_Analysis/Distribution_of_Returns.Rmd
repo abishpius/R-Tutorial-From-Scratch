@@ -1,0 +1,77 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+Estimating Parameters of the Normal Distribution
+
+```{r}
+library(quantmod)
+getSymbols("GOLDPMGBD228NLBM",src="FRED")
+gold <- na.omit(GOLDPMGBD228NLBM)
+gold <- gold["1979-12-31/2017-12-31"]
+names(gold) <- "TR"
+
+```
+```{r}
+logret <- diff(log(gold))[-1]
+```
+
+```{r}
+round(mean(logret),8)
+```
+```{r}
+round(sd(logret),6)
+```
+
+```{r}
+mu <- mean(logret)
+sig <- sd(logret)
+```
+
+Calculating Value of Returns
+```{r}
+var <- qnorm(0.05, mu, sig)
+round(var,6)
+```
+
+```{r}
+HFvar <- 1000*(exp(var)-1)
+round(HFvar, 1)
+```
+
+Estimating Expected Shortfall
+```{r}
+es <- mu-sig*dnorm(qnorm(0.05,0,1),0,1)/0.05
+round(es, 6)
+```
+```{r}
+HFvar2 <- 1000*(exp(es)-1)
+round(HFvar2, 1)
+```
+
+Using Simulation to Estimate Value of Returns and Expected Shortfall
+```{r} 
+#Sim 1
+set.seed(123789)
+rvec <- rnorm(100000,mu,sig)
+VaR <- quantile(rvec, 0.05)
+ES <- mean(rvec[rvec<VaR])
+```
+
+```{r}
+round(VaR, 6)
+```
+```{r}
+round(ES, 6)
+```
+
+```{r}
+#Sim2
+set.seed(123789)
+rvec <- sample(as.vector(logret),100000,replace=TRUE)
+VaR <- quantile(rvec,0.05)
+ES <- mean(rvec[rvec<VaR])
+```
+
