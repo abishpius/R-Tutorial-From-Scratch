@@ -1,0 +1,63 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+library(quantmod)
+getSymbols("GOLDPMGBD228NLBM",src="FRED")
+gold <- na.omit(GOLDPMGBD228NLBM)
+gold <- gold["1979-12-31/2017-12-31"]
+names(gold) <- "TR" 
+
+```
+
+
+```{r}
+logret <- diff(log(gold))[-1] 
+```
+
+```{r}
+acf(logret)
+```
+
+```{r}
+acf( abs(logret) ) 
+```
+
+```{r}
+library(rugarch)
+uspec <- ugarchspec( variance.model = list(model = "sGARCH",garchOrder = c(1,1)),
+ mean.model = list(armaOrder = c(0,0), include.mean = TRUE),
+ distribution.model = "std")
+fit.garch <- ugarchfit(spec = uspec, data = logret[,1]) 
+```
+```{r}
+save1 <- cbind( logret[,1], fit.garch@fit$sigma, fit.garch@fit$z )
+names(save1) <- c( "logret", "s", "z" ) 
+```
+
+```{r}
+acf(save1$z)
+acf(abs(save1$z)) 
+```
+
+```{r}
+set.seed(123789) #set seed value
+boot.garch <- ugarchboot(fit.garch,
+ method=c("Partial","Full")[1], # ignore parameter uncertainty
+ sampling="raw", # draw from standardized residuals
+ n.ahead=1, # 1-day ahead
+ n.bootpred=100000, # number of simulated outcomes
+ solver="solnp")
+```
+```{r}
+rvec <- boot.garch@fseries
+```
+```{r}
+VaR <- quantile(rvec,0.05)
+ES <- mean(rvec[rvec<VaR])
+```
+
