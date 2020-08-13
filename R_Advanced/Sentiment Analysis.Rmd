@@ -1,0 +1,92 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+Sentiment Analysis in R
+```{r}
+library(tidyverse)
+library(tidytext)
+```
+
+```{r}
+sentiments
+```
+
+```{r}
+get_sentiments("bing")
+```
+
+Splitting all words in janeausten works
+```{r}
+library(janeaustenr)
+
+tidy_data <- austen_books() %>% 
+  group_by(book) %>% 
+  mutate(linenumber = row_number(),
+         chapter = cumsum(str_detect(text, regex("^chapter [\\divxlc]", 
+                                                 ignore_case = TRUE)))) %>% 
+  ungroup() %>% 
+  unnest_tokens(word,text)
+```
+
+See Positive Words in Book Sense & Sensibility
+```{r}
+positive_senti <- get_sentiments("bing") %>% 
+  filter(sentiment == "positive")
+
+tidy_data %>% 
+  filter(book == "Sense & Sensibility") %>% 
+  semi_join(positive_senti) %>% 
+  count(word, sort = TRUE)
+
+```
+
+Estabilish Difference in Sentiments
+```{r}
+bing <- get_sentiments("bing")
+Sense_sentiment <- tidy_data %>% 
+  inner_join(bing) %>% 
+  count(book = "Sense & Sensibility", index = linenumber %/% 80, sentiment ) %>% 
+  spread(sentiment, n, fill =0) %>% 
+  mutate(sentiment = positive - negative)
+```
+
+Plot Sentiment across book chapters
+```{r}
+ggplot(Sense_sentiment, aes(index, sentiment, fill = book)) +
+  geom_bar(stat = "identity", show.legend = TRUE) +
+  facet_wrap(~book, ncol = 2, scales = "free_x")
+```
+
+Count the most common positive and negative words
+```{r}
+counting_words <- tidy_data %>% 
+  inner_join(bing) %>% 
+  count(word, sentiment, sort = TRUE)
+head(counting_words)
+```
+
+Visualize the Sentiment Score
+```{r}
+counting_words %>% 
+  filter(n >150) %>% 
+  mutate(n = ifelse(sentiment == "negative", -n, n)) %>% 
+  mutate(word = reorder(word, n)) %>% 
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col() +
+  coord_flip() +
+  labs(y = "Sentiment Score")
+```
+
+Word Cloud of the Results 
+```{r}
+library(reshape2)
+library(wordcloud)
+
+tidy_data %>% 
+  inner_join(bing) %>% 
+  count(word, sentiment, sort = TRUE) %>% 
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>% 
+  comparison.cloud(colors = c("red", "dark green"), max.words = 100)
+```
+
