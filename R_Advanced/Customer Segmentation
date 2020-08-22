@@ -1,0 +1,192 @@
+
+# Customer Segmentation
+
+```{r}
+customer_data <- read.csv("Mall_Customers.csv")
+str(customer_data)
+names(customer_data)
+```
+
+```{r}
+head(customer_data)
+summary(customer_data$Age)
+```
+
+```{r}
+sd(customer_data$Age)
+summary(customer_data$Annual.Income..k..)
+sd(customer_data$Annual.Income..k..)
+summary(customer_data$Age)
+```
+
+```{r}
+sd(customer_data$Spending.Score..1.100.)
+```
+
+```{r}
+a = table(customer_data$Gender)
+barplot(a, main = "Gender Comparion",
+        xlab = "Gender",
+        ylab = "Count",
+        col = rainbow(2),
+        legend = rownames(a))
+```
+```{r}
+library(plotrix)
+```
+
+```{r}
+pct <- round(a/sum(a)*100)
+lbs <- paste(c("Female", "Male"), " ", pct, "%", sep = " ")
+pie3D(a, labels = lbs, main = "Ratio Males and Females")
+```
+
+# Visualize Age Distribution
+
+```{r}
+hist(customer_data$Age, col = "blue", main = "Age Segmentation",
+     xlab = "Age Class",
+     ylab = "Frequency",
+     labels = TRUE)
+```
+
+```{r}
+boxplot(customer_data$Age,
+       col="red",
+       main="Boxplot for Descriptive Analysis of Age")
+```
+
+# Annual Income
+
+```{r}
+summary(customer_data$Annual.Income..k..)
+hist(customer_data$Annual.Income..k..,
+  col="#660033",
+  main="Histogram for Annual Income",
+  xlab="Annual Income Class",
+  ylab="Frequency",
+  labels=TRUE)
+```
+
+```{r}
+plot(density(customer_data$Annual.Income..k..),
+    col="yellow",
+    main="Density Plot for Annual Income",
+    xlab="Annual Income Class",
+    ylab="Density")
+polygon(density(customer_data$Annual.Income..k..),
+        col="#ccff66")
+```
+
+# Sprending Score
+```{r}
+boxplot(customer_data$Spending.Score..1.100.,
+   horizontal=TRUE,
+   col="#990000",
+   main="BoxPlot for Descriptive Analysis of Spending Score")
+```
+
+```{r}
+hist(customer_data$Spending.Score..1.100.,
+    main="HistoGram for Spending Score",
+    xlab="Spending Score Class",
+    ylab="Frequency",
+    col="#6600cc",
+    labels=TRUE)
+```
+
+# Segmentation with Kmeans
+## Determine Optimal Clusters with Elbow Method
+```{r}
+library(purrr)
+set.seed(1)
+iss <- function(k) {
+  kmeans(customer_data[,3:5], k, iter.max = 100, nstart = 100, algorithm="Lloyd" )$tot.withinss
+}
+k.values <- 1:10
+iss_values <- map_dbl(k.values, iss)
+
+```
+```{r}
+plot(k.values, iss_values,
+    type="b", pch = 19, frame = FALSE, 
+    xlab="Number of clusters K",
+    ylab="Total intra-clusters sum of squares")
+```
+
+## With Average Silhouette Method
+```{r}
+library(cluster) 
+library(gridExtra)
+library(grid)
+```
+
+```{r}
+k2<-kmeans(customer_data[,3:5],2,iter.max=100,nstart=50,algorithm="Lloyd")
+s2<-plot(silhouette(k2$cluster,dist(customer_data[,3:5],"euclidean")))
+```
+
+```{r}
+library(NbClust)
+library(factoextra)
+```
+```{r}
+fviz_nbclust(customer_data[,3:5], kmeans, method = "silhouette")
+```
+
+# Gap Statistic Method
+
+```{r}
+set.seed(1)
+stat_gap <- clusGap(customer_data[,3:5], FUN = kmeans, nstart = 25,
+            K.max = 10, B = 50)
+fviz_gap_stat(stat_gap)
+```
+
+```{r}
+k6<-kmeans(customer_data[,3:5],6,iter.max=100,nstart=50,algorithm="Lloyd")
+k6
+```
+cluster – This is a vector of several integers that denote the cluster which has an allocation of each point.
+totss – This represents the total sum of squares.
+centers – Matrix comprising of several cluster centers
+withinss – This is a vector representing the intra-cluster sum of squares having one component per cluster.
+tot.withinss – This denotes the total intra-cluster sum of squares.
+betweenss – This is the sum of between-cluster squares.
+size – The total number of points that each cluster holds.
+
+
+#Visualize Cluster Principle Components
+```{r}
+pcclust=prcomp(customer_data[,3:5],scale=FALSE) #principal component analysis
+summary(pcclust)
+pcclust$rotation[,1:2]
+```
+
+```{r}
+set.seed(1)
+ggplot(customer_data, aes(x =Annual.Income..k.., y = Spending.Score..1.100.)) + 
+  geom_point(stat = "identity", aes(color = as.factor(k6$cluster))) +
+  scale_color_discrete(name=" ",
+              breaks=c("1", "2", "3", "4", "5","6"),
+              labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Segments of Mall Customers", subtitle = "Using K-means Clustering")
+```
+
+```{r}
+ggplot(customer_data, aes(x =Spending.Score..1.100., y =Age)) + 
+  geom_point(stat = "identity", aes(color = as.factor(k6$cluster))) +
+  scale_color_discrete(name=" ",
+                      breaks=c("1", "2", "3", "4", "5","6"),
+                      labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Segments of Mall Customers", subtitle = "Using K-means Clustering")
+```
+
+```{r}
+kCols=function(vec){cols=rainbow (length (unique (vec)))
+return (cols[as.numeric(as.factor(vec))])}
+digCluster<-k6$cluster; dignm<-as.character(digCluster); # K-means clusters
+plot(pcclust$x[,1:2], col =kCols(digCluster),pch =19,xlab ="K-means",ylab="classes")
+legend("bottomleft",unique(dignm),fill=unique(kCols(digCluster)))
+```
+
