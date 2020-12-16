@@ -1,0 +1,163 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+# Linear Regression and ANOVA
+
+Model
+In linear regression modelling, you assume that the expected response  E(Y|X)  is a linear function of inputs:
+
+E(Y|X)=β0+β1X1+β2X2+... 
+
+Note, that the function is expected to be linear in parameters, not in variables. That is why interaction terms such as  X1X2  and functions of inputs such as  log(X1)  are also permitted.
+
+We further assume that the individual observation has a measurement error  ϵi :
+
+Yi==E(Yi|Xi)+ϵiβ0+β1X1+β2X2+...+ϵi 
+
+These measurement errors are assumed to be independent and identically distributed (i.i.d.) and follow the normal distribution with mean 0 and constant variance  σ2 :
+
+ϵi∼N(0,σ2).
+
+Fitting the model and checking the assumptions
+Before the model results can be interpreted these assumptions must be checked. R produces a number of diagnostic plots which makes it very easy.
+
+Below is an example of a model looking at correlation of height and diameter-at-breast-height (dbh) for trees from three species of eucalypti.
+```{r}
+library(tidyverse)
+```
+
+```{r}
+d <- read.csv("eucalyptus.csv")
+```
+
+```{r}
+m <- lm(hgt ~ dbh*spp, data=d)
+
+par(mfrow=c(1,2))
+plot(m,1); plot(m,2)
+```
+The diagnostic plot on the left hand side shows residuals vs. fitted values. If the model is linear in parameters (i.e., a good fit for the data), you expect not to see any further pattern. The red line is expected to be very close to the horizontal zero (the  x -axis in this plot). If the residual variance  σ2  is constant, you expect the point cloud to have the same thickness everywhere.
+
+The diagnostic plot on the right is the QQ plot used to check for normality. If the residuals are normally distributed, you expect the points to lie on the gray dotted 45-degree line.
+
+Note that for large sample sizes the linear regression is fairly robust. In other words, you never expect your assumptions to be perfectly satisfied. Instead, it is usually a case of close enough.
+
+If the assumptions are not satisfied, transforming outputs or trying a different model might be the answer. Otherwise, numerical non-parameteric methods may be used.
+
+Interpretation
+For a multivariate regression model:
+
+E(Y|X)=β0+β1X1+β2X2+... 
+The typical interpretation of a slope coefficient is as follows:
+
+Each additional unit of  X1  is associated with an average  β1  increase in  Y  other things being equal .
+
+Of course, one usually tries to make it more human, while keeping the all important “…is associated with an average…” in.
+
+For a categorical input, one talks in terms of differences between the categories instead.
+
+Finally, the p-values for each coefficient tell you whether or not that coefficient is statistically significantly different from zero. It is best to stick to precise terminology rather than the lazy “the variable is not significant” or “the model is not significant”.
+
+Simple Linear Regression
+Consider first a simple linear regression model with input  X  and response  Y :
+
+Y|X=a+bX+ϵ. 
+
+Now let’s evaluate the effect of increasing  X  by one unit:
+
+(Y|X+1)−(Y|X)=(a+b(X+1)+ϵ)−(a+bX+ϵ)=b. 
+
+Hence the interpretation: a 1 unit increase in  X  is associated with an average  b  units increase in  Y .
+
+Log-linear model - Maths
+Now consider a log-linear model:
+
+log(Y|X)=a+bX+ϵ. 
+
+What happens when  X  increases by one unit?
+
+Let’s denote
+
+log(Y0)=log(Y|X) 
+and
+Y|(X+1)=(Y|X)(1+δ)=Y0(1+δ). 
+
+So  1+δ  is the change in the response when  X  increases by  1 .
+
+Now let’s look at the difference. Based on our modeling:
+log(Y|X+1)−log(Y|X)=b 
+Based on our notation:
+log(Y|X+1)−log(Y|X)=log(Y0(1+δ))−log(Y0)=log(1+δ) 
+
+In other words,
+b=log(1+δ). 
+
+
+Log-linear Model - Interpretation
+With the final bit of algebra, we get  1+δ=eb . The interpretation thus becomes:
+
+each additional unit of  X  is associated with an average  eb  -fold increase in  Y  .
+
+When  b  is small, such interpretation becomes a bit awkward. (Who wants to discuss a  1.02 -fold increase!?). So we switch to percentages:
+
+each additional unit of  X  is associated with an average  (eb−1)×100%  increase in  Y  .
+
+Finally, for small  b<0.1 ,  eb−1≈b  so you can get a quick idea about your output without exponentiation.
+
+There will be a lot of logarithms and exponentials in this course. So if you feel a bit uncertain, better find an online tutorial or a textbook and review them.
+
+ANOVA stands for ANalysis Of VAriance, but in it’s basic form it is actually about testing the null hypothesis about group-specific means  μ1 ,…, μG  all being equal:
+
+H0:μ1=...=μG 
+
+against the alternative hypothesis that there is a difference somewhere.
+
+In order to do it, the sum of observed squared deviations from the mean (errors) is decomposed into the part explained by the groups and the residual (unexplained) part. The  F -statistic in the test is calculated based on this decomposition.
+
+If the test returns a statistically significant result, a post-hoc Tukey test can be conducted to figure out exactly where the differences are.
+
+1-way ANOVA Example
+Below is a quick ANOVA for the Eucalypti data. Testing whether the average height of trees differs between the three species (encoded clo, dun and pil here).
+
+```{r}
+boxplot(hgt ~ spp, data=d, col='darkgreen')
+```
+```{r}
+m <- lm(hgt ~ spp, data=d)
+anova(m)
+```
+Evidence of statistically significant difference somewhere. Using the post hoc Tukey test to find out where:
+
+```{r}
+library(multcomp)
+g <- glht(m,linfct=mcp(spp='Tukey'))
+cld(g)
+```
+The compact letter display is a very nice way to summarise the results. The population means of groups that do not have any letters in common are statistically significantly different from each other.
+
+In this case, the average heights of the trees are statistically significantly different between the three species.
+
+ANOVA for linear models
+For a linear model
+
+Y=β0+β1X1+β2X2+ϵ, 
+The sum of squared errors may be decomposed, for example, into the part explained by  X1 , the part explained by  X2  (in addition to  X1 ) and the unexplained residual part.
+
+ANOVA can thus be used to compare two linear models. It tests whether the variable  X2 , say, explains enough variation to be included in the model.
+
+ANCOVA
+Suppose we still want to test whether the three eucalypti species differ in terms of average height, but we want to adjust for the diameter at breast height (dbh). Such analysis is called ANCOVA (ANOVA with covariates).
+
+To answer this question, we can fit the model with and without the species variable and see what happens:
+```{r}
+m1 <- lm(hgt ~ spp*dbh, data=d)
+m0 <- lm(hgt ~ dbh, data=d)
+anova(m0,m1)
+```
+
+Looks like there are statistically significant differences in average tree height between the species, after adjusting for the dbh.
+
+This mechanism can be used to test a wide range of useful hypotheses. The hardest part is probably translating the research question into statistical language and thus into R.
+
+And remember to check the assumptions for the linear models you are testing.
