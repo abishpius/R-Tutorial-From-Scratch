@@ -10,4 +10,5 @@
 6. Phyllotaxis: Draw Flowers Using Mathematics
 7. Exploring the Kaggle Data Science Survey
 8. Modeling the Volatility of US Bonds
+9. Visualizing Covid-19
 
