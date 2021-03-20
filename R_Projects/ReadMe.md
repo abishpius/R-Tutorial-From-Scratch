@@ -12,5 +12,6 @@
 8. Modeling the Volatility of US Bonds
 9. Visualizing Covid-19
 10. Wrangling and Visualizing Musical Data
+11. Level Difficulty in Candy Crush Saga
 
 
