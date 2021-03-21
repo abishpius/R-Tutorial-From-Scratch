@@ -13,5 +13,6 @@
 9. Visualizing Covid-19
 10. Wrangling and Visualizing Musical Data
 11. Level Difficulty in Candy Crush Saga
+12. Scout your Athletics Team
 
 
