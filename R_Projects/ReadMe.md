@@ -22,6 +22,8 @@
 18. Predict Taxi Fares with Random Forests
 19. Where Are the Fishes
 20. Going Down to South Park_ A Text Analysis
+21. Gender Bias in Graduate Admissions
+
 
 
 
