@@ -25,6 +25,7 @@
 21. Gender Bias in Graduate Admissions
 22. Clustering Bustabit Gambling Behavior
 23. The Impact of Climate Change on Birds
+24. A Text Analysis of Trump's Tweets
 
 
 
