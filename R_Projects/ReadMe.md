@@ -27,6 +27,7 @@
 23. The Impact of Climate Change on Birds
 24. A Text Analysis of Trump's Tweets
 25. Are You Ready for the Zombie Apocalypse
+26. Trends in Maryland Crime Rate
 
 
 
