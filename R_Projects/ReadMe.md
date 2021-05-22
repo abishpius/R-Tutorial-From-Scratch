@@ -29,6 +29,7 @@
 25. Are You Ready for the Zombie Apocalypse
 26. Trends in Maryland Crime Rate
 27. Health Survey Data Analysis of BMI
+28. Kidney Stones and Simpson's Paradox
 
 
 
