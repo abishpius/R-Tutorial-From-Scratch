@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+Using H2O ai for machine learning, install h20 with install.packages('h20')
+
+```{r}
+library(h2o)
+h2o.init()
+```
+
+Get Data
+
+```{r}
+url <- "http://h2o-public-test-data.s3.amazonaws.com/smalldata/iris/iris_wheader.csv"
+
+iris <- h2o.importFile(url)
+
+```
+
+Train-Test Split
+```{r}
+parts <- h2o.splitFrame(iris, 0.8, seed =123)
+train <- parts[[1]]
+test <- parts[[2]]
+```
+
+Examine Data
+```{r}
+summary(train)
+nrow(train)
+nrow(test)
+```
+
+Train Deep Learning model
+```{r}
+mDL <- h2o.deeplearning(1:4, 5 ,train)
+```
+
+```{r}
+mDL
+```
+
+Use model
+```{r}
+p <- h2o.predict(mDL, test)
+```
+```{r}
+p
+```
+
+check model performance
+```{r}
+h2o.performance(mDL, test)
+```
+
