@@ -54,3 +54,14 @@ check model performance
 h2o.performance(mDL, test)
 ```
 
+AutoML
+
+```{r}
+auto_mDL <- h2o.automl(1:4, 5, train,
+                       max_runtime_secs = 30)
+```
+
+```{r}
+auto_mDL
+```
+
