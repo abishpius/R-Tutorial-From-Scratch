@@ -1,0 +1,38 @@
+
+GLM in H2O
+
+```{r}
+library(h2o)
+h2o.init()
+```
+
+```{r}
+url <- "http://coursera.h2o.ai/data/smoking.csv"
+data <- h2o.importFile(url)
+```
+
+```{r}
+data
+summary(data)
+h2o.sum(data[,3])
+```
+
+```{r}
+x = 1:2
+y = 5
+```
+
+GLM model 
+```{r}
+m <- h2o.glm(x,y, data,
+             family = "poisson",
+             model_id = "smoking_p",
+             #nfold = 12,
+             #fold_assignment = "Modulo"
+             )
+```
+
+```{r}
+m
+```
+

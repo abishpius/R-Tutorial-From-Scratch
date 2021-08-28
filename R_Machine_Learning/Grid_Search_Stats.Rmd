@@ -1,0 +1,108 @@
+Data Manipulation, Statistics, Grid Search
+
+```{r}
+library(h2o)
+h2o.init()
+```
+
+```{r}
+url <- 'http://h2o-public-test-data.s3.amazonaws.com/smalldata/airlines/allyears2k_headers.zip'
+data <- h2o.importFile(url)
+```
+
+```{r}
+summary(data)
+```
+
+
+
+Data Manipulations
+```{r}
+mean(data[,'AirTime'], na.rm = TRUE)
+h2o.mean(data[,'AirTime'], na.rm = TRUE)
+```
+
+```{r}
+range(data[,'AirTime'], na.rm = TRUE)
+```
+
+```{r}
+h2o.hist(data[, 'ArrDelay'])
+```
+
+Data Manipulation Filters
+```{r}
+h2o.any(data[, "ArrDelay"] > 360)
+h2o.all(data[,"ArrDelay"] < 480)
+h2o.all(h2o.na_omit(data[,"ArrDelay"]) < 480)
+h2o.cumsum((data[,"ArrDelay"]), axis = 0)
+```
+
+Correlations
+```{r}
+h2o.cor(data[,"ArrDelay"], data[,"DepDelay"], na.rm = TRUE)
+```
+
+Entropy on strings
+```{r}
+h2o.entropy(as.h2o("Hello Water"))
+```
+
+Grid Search
+```{r}
+parts <- h2o.splitFrame(data, c(0.8,0.1), seed = 123)
+train <- parts[[1]]
+valid <- parts[[2]]
+test <- parts[[3]]
+```
+
+```{r}
+y <- "IsArrDelayed"
+xAll <- setdiff(colnames(data), c(
+  'ArrDelay', 'DepDelay', 'CarrierDelay', 'WeatherDelay',
+  'NASSDelay', 'SecurityDelay', 'LateAircraftDelay',
+  'IsDepDelayed', 'IsArrDelayed', 'ActualElapsedTime'
+))
+
+xLikely <- c('Month', 'DayofWeek', 'UnionCarrier',
+             'Origin', 'Dest', 'Distance', 'Cancelled',
+             'Diverted')
+```
+
+Base Model
+```{r}
+system.time(
+  m_def <- h2o.glm(xAll, y, train,
+              validation_frame = valid,
+              family = 'binomial')
+)
+```
+
+```{r}
+h2o.performance(m_def, valid = TRUE)
+```
+
+Grid Search
+```{r}
+g <- h2o.grid('glm', 
+    search_criteria = list(
+      strategy = "RandomDiscrete",
+      max_models = 8,
+      max_runtime_secs = 30
+    ),
+    hyper_params = list(
+      alpha = seq(0,0.99, 0.01)
+    ),
+    grid_id = 'random8',
+    x = xAll,
+    y = y,
+    training_frame = train,
+    validation_frame = valid,
+    family = 'binomial',
+    lambda_search = TRUE)
+```
+
+```{r}
+g
+```
+
