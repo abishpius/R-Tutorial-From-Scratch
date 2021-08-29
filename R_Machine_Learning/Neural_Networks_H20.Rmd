@@ -1,0 +1,146 @@
+
+H2O data filtering
+
+```{r}
+library(h2o)
+h2o.init()
+```
+
+```{r}
+url <- 'http://h2o-public-test-data.s3.amazonaws.com/smalldata/airlines/allyears2k_headers.zip'
+data <- h2o.importFile(url)
+```
+
+```{r}
+parts <- h2o.splitFrame(data, c(0.8,0.1), seed = 123)
+train <- parts[[1]]
+valid <- parts[[2]]
+test <- parts[[3]]
+```
+
+```{r}
+# firs n rows
+n <- 35235
+train2 <- data[1:n, ]
+```
+
+```{r}
+h2o.ls()
+```
+
+```{r}
+train2 <- h2o.assign(train2, "first35355")
+```
+
+Combine data with
+
+h2o.cbind and h2o.rbind
+______________________________________________________________
+
+Neural Networks
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+y <- "IsArrDelayed"
+xAll <- setdiff(colnames(data), c(
+  'ArrDelay', 'DepDelay', 'CarrierDelay', 'WeatherDelay',
+  'NASSDelay', 'SecurityDelay', 'LateAircraftDelay',
+  'IsDepDelayed', 'IsArrDelayed', 'ActualElapsedTime'
+))
+x2 <- setdiff(xAll, 'TailNum')
+```
+
+```{r}
+system.time(
+  m_def <- h2o.deeplearning(xAll, y, train,
+                            validation_frame = valid)
+)
+```
+
+```{r}
+h2o.performance(m_def, valid=TRUE)
+```
+
+```{r}
+plot(m_def)
+```
+
+Deep Learning extra arguments
+```{r}
+m_extra_args <- h2o.deeplearning(xAll, y, train,
+                                 validation_frame = valid,
+                            stopping_rounds = 5,
+                            stopping_tolerance = 0,
+                            stopping_metric = 'logloss',
+                  hidden = c(200,200,200))
+```
+
+```{r}
+h2o.describe(train)
+```
+
+Deep Learning Grid Search
+```{r}
+g <- h2o.grid(
+  "deeplearning",
+  search_criteria = list(
+    strategy = 'RandomDiscrete',
+    max_models = 4
+  ),
+  hyper_params = list(
+    seed = c(123),
+    l1 = c(0,1e-6,3e-6,1e-5),
+    l2 = c(0,1e-6,3e-6,1e-5),
+    input_dropout_ratio = c(0,0.1,0.2,0.3),
+    hidden_dropout_ratios = list(
+      c(0,0),
+      c(0.2, 0.2),
+      c(0.4,0.4),
+      c(0.6,0.6)
+    )
+  ),
+  grid_id = 'dl-test',
+  x = x2,
+  y = y,
+  hidden = c(400,400),
+  epochs = 0.01,
+  training_frame = train,
+  validation_frame = valid, 
+  activation = 'RectifierWithDropout'
+  
+)
+```
+
+Deep Learning on Regression
+
+```{r}
+y <- 'ArrDelay'
+```
+
+```{r}
+xWithDep <- setdiff(colnames(data), c(
+  'ArrDelay', 'IsArrDelayed', 'ActualElapsedTime',
+  'ArrTime', 'TailNum'
+))
+```
+
+```{r}
+system.time((
+  m_DLR_def <- h2o.deeplearning(xWithDep, y, train,
+                          validation_frame = valid,
+                    model_id = 'DLR_def',
+                    variable_importances = TRUE)
+))
+```
+
+```{r}
+h2o.performance(m_DLR_def, valid)
+```
+
+```{r}
+plot(m_DLR_def)
+```
+
