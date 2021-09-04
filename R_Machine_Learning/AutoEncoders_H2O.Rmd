@@ -1,0 +1,122 @@
+AutoEncoders
+
+```{r}
+library(h2o)
+h2o.init()
+```
+
+```{r}
+url <- "http://h2o-public-test-data.s3.amazonaws.com/smalldata/iris/iris_wheader.csv"
+iris <- h2o.importFile(url)
+```
+
+```{r}
+parts <- h2o.splitFrame(iris, 0.8, seed =123)
+train <- parts[[1]]
+test <- parts[[2]]
+```
+
+Autoencoder 4 hidden layers
+```{r}
+m_AE_4 <- h2o.deeplearning(x = 1:4,
+                           training_frame = train,
+                           autoencoder = TRUE,
+                           epochs = 300,
+                           model_id = "m_AE_4",
+                           train_samples_per_iteration = nrow(train),
+                           score_interval = 0,
+                           score_duty_cycle = 1.0,
+                           hidden = c(4),
+                           activation = "Tanh"
+                           )
+```
+
+```{r}
+h2o.scoreHistory(m_AE_4)
+```
+
+```{r}
+plot(as.data.frame(h2o.scoreHistory(m_AE_4))$training_mse, type = 'l')
+```
+
+Autoencoder 3 hidden layers
+```{r}
+m_AE_3 <- h2o.deeplearning(x = 1:4,
+                           training_frame = train,
+                           autoencoder = TRUE,
+                           epochs = 300,
+                           model_id = "m_AE_3",
+                           train_samples_per_iteration = nrow(train),
+                           score_interval = 0,
+                           score_duty_cycle = 1.0,
+                           hidden = c(3),
+                           activation = "Tanh"
+                           )
+```
+
+Multilayer AE
+
+```{r}
+m_AE_5_3_5 <- h2o.deeplearning(x = 1:4,
+                           training_frame = train,
+                           autoencoder = TRUE,
+                           epochs = 300,
+                           model_id = "m_AE_5_3_5",
+                           train_samples_per_iteration = nrow(train),
+                           score_interval = 0,
+                           score_duty_cycle = 1.0,
+                           hidden = c(5,3,5),
+                           activation = "Tanh"
+                           )
+```
+
+```{r}
+plot(as.data.frame(h2o.scoreHistory(m_AE_5_3_5))$training_mse, type = 'l')
+```
+
+Anomaly detect
+```{r}
+m_AE_anomaly <- h2o.deeplearning(x=1:5,
+                  training_frame = iris,
+                  autoencoder = TRUE,
+                  epochs = 300,
+                  model_id =  "m_AE_anomaly",
+                  train_samples_per_iteration = 0,
+                  score_interval = 0,
+                  score_duty_cycle = 1.0,
+                  hidden = c(16),
+                  activation = 'Tanh')
+```
+
+m_AE_anomaly
+```{r}
+anomalies <- as.data.frame(h2o.cbind(iris, h2o.anomaly(m_AE_anomaly, iris)))
+sorted <- anomalies[-order(anomalies$Reconstruction.MSE),]
+```
+
+```{r}
+sorted
+```
+
+PCA
+```{r}
+m_PCA <- h2o.prcomp(train,1:4, k=4, impute_missing = TRUE)
+```
+```{r}
+p_PCA = h2o.predict(m_PCA, train)
+p_PCA
+```
+
+GLRM
+```{r}
+m_GLRM <- h2o.glrm(train, 1:4, k=4)
+p_GLRM <- h2o.predict(m_GLRM, train)
+p_GLRM
+```
+
+```{r}
+m_GLRM <- h2o.glrm(train, 1:5, k=3)
+p_GLRM <- h2o.predict(m_GLRM, train)
+as.data.frame(h2o.cbind(train$class, p_GLRM$reconstr_class))
+```
+
