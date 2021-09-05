@@ -1,0 +1,89 @@
+
+Ensembles
+
+```{r}
+library(h2o)
+h2o.init()
+```
+
+```{r}
+url <- 'http://h2o-public-test-data.s3.amazonaws.com/smalldata/airlines/allyears2k_headers.zip'
+data <- h2o.importFile(url)
+```
+
+```{r}
+parts <- h2o.splitFrame(data, c(0.8,0.1), seed = 123)
+train <- parts[[1]]
+valid <- parts[[2]]
+test <- parts[[3]]
+```
+
+```{r}
+y <- "IsArrDelayed"
+x <- setdiff(colnames(data), c(
+  'ArrDelay', 'DepDelay', 'CarrierDelay', 'WeatherDelay',
+  'NASSDelay', 'SecurityDelay', 'LateAircraftDelay',
+  'IsDepDelayed', 'IsArrDelayed', 'ActualElapsedTime'
+))
+# x2 <- setdiff(xAll, 'TailNum')
+```
+
+
+```{r}
+nfolds <- 5
+train2 <- h2o.rbind(train, valid)
+m_glm <- h2o.glm(x, y, train2,
+              family = "binomial",
+              model_id = "glm_def",
+              nfolds = nfolds,
+              fold_assignment = "Modulo",
+              keep_cross_validation_predictions = TRUE)
+
+m_gbm <- h2o.gbm(x,y, train2, 
+                 model_id = "gbm_def",
+                 nfolds=nfolds,
+                 fold_assignment = "Modulo",
+                 keep_cross_validation_predictions = TRUE)
+
+m_rf <- h2o.randomForest(x, y , train2,
+                         model_id = "rf_def",
+                         nfolds = nfolds,
+                         fold_assignment = "Modulo",
+                         keep_cross_validation_predictions = TRUE)
+
+
+
+```
+
+```{r}
+model_ids <- list(m_glm@model_id, m_gbm@model_id,
+                  m_rf@model_id)
+```
+
+Stacked Ensemble
+```{r}
+m_SE <- h2o.stackedEnsemble(x, y, train2,
+                            model_id = "SE_glm_gbm_rf",
+                            base_models = model_ids)
+```
+
+```{r}
+models <- c(m_glm,m_gbm, m_rf, m_SE)
+```
+
+```{r}
+sapply(models, h2o.logloss)
+sapply(models, h2o.logloss, xval= TRUE)
+```
+
+```{r}
+sapply(models, h2o.auc)
+sapply(models, h2o.auc, xval = TRUE )
+```
+
+```{r}
+perfs = lapply(models, h2o.performance, test)
+sapply(perfs, h2o.logloss)
+sapply(perfs, h2o.auc)
+```
+
