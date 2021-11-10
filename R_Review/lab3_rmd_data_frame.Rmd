@@ -1,0 +1,314 @@
+---
+title: "List and Dataframe"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup, include = FALSE}
+required = c("tidyverse")
+
+for (i in required) {
+  if (!require(i, character.only = T)) {
+    install.packages(i, character.only = T)
+  }
+  library(i, character.only = T)
+}
+```
+
+Estimated time needed: **15** minutes
+
+# Objectives
+After completing this lab you will be able to:
+
+- Understand the list and how list correlated with DataFrame
+- Understand DataFrame
+- Operate on DataFrames
+
+# About the Dataset
+
+You have received many movie recommendations from your friends and compiled all of the recommendations into a table, with information about each movie. 
+
+This table has one row for each movie and several columns.
+
+-   **name** - The name of the movie;
+-   **year** - The year the movie was released;
+-   **length_min** - The length of the movie in minutes;
+-   **genre** - The genre of the movie;
+-   **average_rating** - Average rating on Imdb;
+-   **cost_millions** - The movie's production cost in millions;
+-   **foreign** - Indicative of whether the movie is foreign (1) or domestic (0);
+-   **age_restriction** - The age restriction for the movie;
+
+Here's what the data looks like:
+```{r, echo = F}
+"https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-RP0101EN-Coursera/v2/dataset/movies-db.csv" %>% read.csv() %>% head(n = 10) %>% knitr::kable()
+```
+
+# Lists
+First of all, we're gonna take a look at lists in R. 
+
+A list is a sequenced collection of different objects of R, like vectors, numbers, characters, other lists and so on. You can consider a list as a container of correlated information, well structured, and easy to read with a context. 
+
+A list accepts items of different types, but a vector (or a matrix, which is a multidimensional vector) doesn't. To create a list just type `list()` with your content inside the parenthesis and separated by commas. Let’s try it!
+
+```{r}
+movie <- list("Toy Story", 1995, c("Animation", "Adventure", "Comedy"))
+```
+
+In the code above, the variable movie contains a list of 3 objects, which are a string, a numeric value, and a vector of strings. 
+
+Easy, eh? Now let's print the content of the list. We just need to call its name.
+```{r}
+movie
+```
+
+## Accessing items in a list
+It is possible to retrieve only a part of a list using the **single square** bracket operator `[ ]`. This operator can be also used to get a single element in a specific position. Take a look at the next example:
+
+The index number 2 returns the second element of a list, if that length of list is at least 2:
+```{r}
+movie[2]
+```
+
+Or you can select a part or interval of elements of a list. In our next example we are retrieving the 1st, 2nd, and 3rd elements:
+```{r}
+movie[1:3]
+```
+
+
+## Named lists
+It looks a little confusing, but lists can also store names for its elements. The following list is a named list:
+```{r}
+movie <- list(
+  name = "Toy Story",
+  year = 1995,
+  genre = c("Animation", "Adventure", "Comedy")
+)
+```
+
+Let me explain that: the list **movie** has some named objects within it. **name**, for example, is an object of type **character**, **year** is an object of type **number**, and **genre** is a vector with objects of type **character**.
+
+Now take a look at this list. This time, it's full of information and well organized. It's clear what each element means. You can see that the elements have different types, and that's ok because it's a list.
+```{r}
+movie
+```
+
+You can also get separated information from the list. You can use `listName$selectorName`. The *dollar-sign operator* `$` will give you the block of data that is related to selector Name.
+
+Let's get the genre part of our movies list, for example.
+```{r}
+movie$genre
+```
+
+Here is another way of selecting the genre column:
+```{r}
+movie["genre"]
+```
+
+## Coding Exercise 1
+In the code cell below, get the second element in the `genre` column
+```{r}
+# Write your code below. Don't forget to press Shift + Enter to execute the cell
+```
+
+You can also use numerical selectors like an array. Here we are selecting elements with indexes ranged from 2 to 3.
+```{r}
+movie[2:3]
+```
+
+The function `class()` returns the type of a object. You can use that function to retrieve the type of specific elements of a list:
+```{r}
+class(movie$name)
+```
+
+## Adding, modifying, and removing items
+Adding a new element is also very easy. The code below adds a new field named **age** and puts the numerical value 5 into it. 
+
+In this case we use the double square brackets operator, because we are directly referencing a list member (and we want to change its content).
+
+```{r}
+movie[["age"]] <- 5
+movie
+```
+
+In order to modify, you just need to refer a list member that already exists, then change its content.
+```{r}
+movie[["age"]] <- 6
+# Now it's 6, not 5
+movie
+```
+
+And removing is also easy! You just put `NULL`, which means empty object, into it.
+```{r}
+movie[["age"]] <- NULL
+movie
+```
+
+## Coding Exercise 2:
+In the code cell below, add a logical column with a name `WillWatch` with value `TRUE` or `T`.
+```{r}
+# Write your code below. Don't forget to press Shift + Enter to execute the cell
+```
+
+## Concatenating lists
+Concatenation is the process of putting things together, in sequence. And yes, you can do it with lists. Just call the function `c()`. Take a look at the next example:
+```{r}
+# We split our previous list in two sublists
+movie_part1 <- list(name = "Toy Story")
+movie_part2 <- list(year = 1995, genre = c("Animation", "Adventure", "Comedy"))
+
+# Now we call the function c() to put everything together again
+movie_concatenated <- c(movie_part1, movie_part2)
+
+# Check it out
+movie_concatenated
+```
+
+Lists are really handy for organizing different types of elements in R, and also easy to use. 
+
+Additionally, lists are also important since this type of data structure is essential to create data frames, our next covered topic.
+
+# DataFrames
+A DataFrame is a structure that is used for storing data tables. Underneath it all, a data frame is a list of vectors of identical length, exactly like a table (each vector is a column). 
+
+We can use the function  `data.frame()` to create a data frame and pass vectors, which are our columns, as arguments. It is required to name the columns that will compose the data frame.
+```{r}
+movies <-
+  data.frame(
+    name = c(
+      "Toy Story",
+      "Akira",
+      "The Breakfast Club",
+      "The Artist",
+      "Modern Times",
+      "Fight Club",
+      "City of God",
+      "The Untouchables"
+    ),
+    year = c(1995, 1998, 1985, 2011, 1936, 1999, 2002, 1987),
+    stringsAsFactors = F
+  )
+```
+
+Let's print its content of our recently created data frame:
+```{r}
+movies
+```
+
+It's very easy! You can note how it looks like a table.
+
+We can also use the `$` selector to get some type of information. This operator returns the content of a specific column of a data frame (that's why we have to choose a name for each column).
+```{r}
+movies$name
+```
+
+You retrieve data using numeric indexing, like in lists:
+```{r}
+# This returns the first (1st) column
+movies[1]
+```
+
+## Coding Exercise 3:
+In the code cell below, select the first row of movies data frame:
+```{r}
+# Write your code below. Don't forget to press Shift + Enter to execute the cell
+```
+
+## Coding Exercise 4:
+In the code cell below, select the first and second rows but only with first column selected from the movies data frame.
+```{r}
+# Write your code below. Don't forget to press Shift + Enter to execute the cell
+```
+
+The function called `str()` is one of most useful functions in R. With this function you can obtain textual information about an object. In this case,  it delivers information about the objects within a data frame. Let's see what it returns:
+```{r}
+str(movies)
+```
+
+It shows this data frame has 8 observations, for 2 columns, so called `name` and `year`. The "name" column is a factor with 8 levels and "year" is a numerical column. 
+
+The `class()` function works for data frames as well. You can use it to determine the type of a column of a data frame.
+```{r}
+class(movies$year)
+```
+
+You can use numerical selectors to reach information inside the table.
+```{r}
+movies[1, 2] #1 - Toy Story, 2 - 1995
+```
+
+The `head()` function is very useful when you have a large table and you need to take a peek at the first elements. This function returns the first 6 values of a data frame (or event a list).
+```{r}
+head(movies)
+```
+
+Similar to the previous function, `tail()` returns the last 6 values of a data frame or list.
+```{r}
+tail(movies)
+```
+
+Now, let's try to get the row with name "Toy Story".
+```{r}
+# Find the rows with name "Toy Story"
+selected <- movies["name"] == "Toy Story"
+# Get the selected row(s)
+toy_story <- movies[selected, ]
+toy_story
+```
+
+Now let's try to add a new column to our data frame with the length of each movie in minutes.
+```{r}
+movies['length'] <- c(81, 125, 97, 100, 87, 139, 130, 119)
+movies
+```
+
+A new column was included into our data frame with just one line of code. We just needed to add a vector to data frame, then it will be our new column.
+
+Now let's try to add a new movie to our data set.
+```{r}
+movies <- rbind(movies, c(name="Dr. Strangelove", year=1964, length=94))
+movies
+```
+
+Remember, you can't add a list with more variables than the data frame, and vice-versa.
+
+We don't need this movie anymore, so let's delete it. Here we are deleting row 12 by assigning to itself the movies dataframe without the 12th row.
+```{r}
+movies <- movies[-12,]
+movies
+```
+
+To delete a column you can just set it as `NULL`.
+```{r}
+movies[["length"]] <- NULL
+movies
+```
+
+That is it! You learned a lot about data frames and how easy it is to work with them.
+
+# Scaling R with big data
+As you learn more about R, if you are interested in exploring platforms that can help you run analyses at scale, you might want to sign up for a free account on [IBM Watson Studio](http://cocl.us/dsx_rp0101en), which allows you to run analyses in R with two Spark executors for free.
+
+
+# Author(s)
+[Weiqing Wang](https://www.linkedin.com/in/weiqing-wang-641640133/).
+
+Weiqing is a Data Scientist intern at IBM Canada Ltd. Weiqing holds an Honours Bachelor of Science from the University of Toronto with two specialist degrees, respectively in computer science and statistical sciences. He is presently working towards a graduate degree in computer science at the University of Toronto.
+
+Weiqing avail himself of this opportunity to acknowledge that this notebook was written based heavily on past offerings of this course, in particular [Thiago Felipe Correa Borges](https://www.linkedin.com/in/thiago-felipe-corr%C3%AAa-borges-a932bb114?trk=nav_responsive_tab_profile)'s, former Web Developer Intern at IBM.
+
+## Other contributors
+[Yan Luo, PhD](https://www.linkedin.com/in/yan-luo-96288783/).
+
+# Change Log
+
+| Date (YYYY-MM-DD) | Version | Changed By   | Change Description           |
+| ----------------- | ------- | ------------ | ---------------------------- |
+| 2021-07-10        | 1.0     | Weiqing Wang | Initial Version Created.     |
+|                   |         |              |                              |
+|                   |         |              |                              |
+
+© IBM Corporation 2021. All rights reserved.
