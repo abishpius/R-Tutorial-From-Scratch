@@ -50,33 +50,16 @@ ui <- bootstrapPage(
                 #                'Double Quote'='"',
                 #                'Single Quote'="'"),
                 #              '"')
-                radioButtons('simple', "Simple Models",
-                             c(Mean = 'mean',
-                               Naive = 'naive',
-                               SNaive = 'snaive',
-                               Drift = 'drift'),
-                             'mean'),
-                radioButtons('exp_options', "Exponential Smoothing",
-                             c(Holt = 'Holt',
-                               Holt_Winters = 'Holt Winters'),
-                               'Holt'),
-                sliderInput("p",
-                            "ARIMA Sliders P,D,Q",
-                            min = 0,
-                            max = 3,
-                            value = 0),
-                sliderInput("d",
-                            NULL,
-                            min = 0,
-                            max = 3,
-                            value = 0),
-                sliderInput("q",
-                            NULL,
-                            min = 0,
-                            max = 3,
-                            value = 0),
                 
-                checkboxInput('auto', 'Auto ARIMA', FALSE)
+                
+                
+                sliderInput("f",
+                            "Forecast Length",
+                            min = 1,
+                            max = 50,
+                            value = 12),
+                
+                
             
         ),
         
@@ -97,16 +80,62 @@ ui <- bootstrapPage(
                         #          ),
                         
                         tabPanel("Data", tableOutput('table')),
+                        
+                        
                         tabPanel("Time Series Plot", plotlyOutput("plot")),
-                        tabPanel("Time Series Quick Summary", verbatimTextOutput("stats")),
+                        
+                        
+                        tabPanel("Time Series Residuals and Quick Summary", verbatimTextOutput("stats"),
+                                 plotlyOutput('resid')),
+                        
+                        
                         tabPanel("Time Series Resample Plot", plotlyOutput("resample_plot")),
-                        tabPanel("Time Series Decomposition", plotlyOutput("Decomposition")),
-                        tabPanel("Simple Models",plotlyOutput("simple_models_plot"),
-                                 verbatimTextOutput("simple_models")),
-                        tabPanel("Exponential smoothing", plotlyOutput("exp_plot"),
-                                 verbatimTextOutput("exp")),
-                        tabPanel("ARIMA", plotlyOutput("arima_plot"),
-                                 verbatimTextOutput("arima"))
+                        
+                        
+                        tabPanel("Time Series Decomposition", plotlyOutput("Decomposition"),
+                                 p("The output of this will print to a popup window.")),
+                        
+                        
+                        tabPanel("Simple Models",radioButtons('simple', "Simple Models",
+                                                              c(Mean = 'mean',
+                                                                Naive = 'naive',
+                                                                SNaive = 'snaive',
+                                                                Drift = 'drift'),
+                                                              'mean'),
+                                 
+                                 plotlyOutput("simple_models_plot"),
+                                 verbatimTextOutput("simple_models"),
+                                 p('Note: This may take a while to run.')),
+                        
+                        
+                        tabPanel("Exponential smoothing", radioButtons('exp_options', "Exponential Smoothing",
+                                                                       c(Holt = 'Holt',
+                                                                         Holt_Winters = 'Holt Winters'),
+                                                                       'Holt'),
+                                 plotlyOutput("exp_plot"),
+                                 verbatimTextOutput("exp"),
+                                 p('Note: This may take a while to run.')),
+                        
+                        
+                        tabPanel("ARIMA", sliderInput("p",
+                                                      "ARIMA Sliders P,D,Q",
+                                                      min = 0,
+                                                      max = 3,
+                                                      value = 0),
+                                 sliderInput("d",
+                                             NULL,
+                                             min = 0,
+                                             max = 3,
+                                             value = 0),
+                                 sliderInput("q",
+                                             NULL,
+                                             min = 0,
+                                             max = 3,
+                                             value = 0),
+                                 checkboxInput('auto', 'Auto ARIMA', FALSE),
+                                 plotlyOutput("arima_plot"),
+                                 verbatimTextOutput("arima"),
+                                 p('Model is loading and may take 2 - 3 minutes. Model will need time to update when a different model / PDQ is selected'))
                         
                         
                         
@@ -193,6 +222,16 @@ server <- function(input, output,session) {
         return(df)
     })
     
+    # Residuals
+    rs <- reactive({
+        tmp <- data_int()
+        tmp$date2 <- decimal_date(tmp$date)
+        M1 <- lm(value ~ date2, tmp) 
+        tmp$res1 <- M1$residuals
+        return(tmp)
+    })
+    
+    
     # Data for simple models
     data_simple_fit <- reactive({
         tmp <- data_tsbl()
@@ -229,7 +268,7 @@ server <- function(input, output,session) {
     # Data simple forecast
     data_simple_forecast <- reactive({
         tmp <- data_simple_fit()
-        fc <- tmp %>% forecast(h=12)
+        fc <- tmp %>% forecast(h=input$f)
         return(fc)
     })
     
@@ -267,7 +306,7 @@ server <- function(input, output,session) {
     # Create Holt forecast
     holt_fc <- reactive({
         tmp <- data_holt()
-        fc <- tmp %>% forecast(h=12)
+        fc <- tmp %>% forecast(h=input$f)
         return(fc)
     })
     
@@ -295,7 +334,7 @@ server <- function(input, output,session) {
     # Create Arima forecast
     arima_fc <- reactive({
         tmp <- arima_l()
-        fc <- tmp %>% forecast(h=12)
+        fc <- tmp %>% forecast(h=input$f)
         return(fc)
     })
     
@@ -350,7 +389,8 @@ server <- function(input, output,session) {
     
     # Data output
     output$table = renderTable({
-        data()
+         data()
+        
        # data_tsbl()
     })
     
@@ -405,7 +445,16 @@ server <- function(input, output,session) {
     })
     
     # Create holt plot
-    output$exp_plot <- 
+    output$exp_plot <- renderPlotly({
+        ggplot() +geom_point(data = holt_fc(), aes(x= date, y =holt_fc()$.mean, color = 'red'))+ 
+            geom_line(data = holt_fc(), aes(x= date, y = holt_fc()$.mean, color = 'red'))+
+            geom_point(data = data_int() , aes(x = data_int()[,input$choice1],
+                                               y = data_int()[,input$choice2]))+
+            labs(x=input$choice1, y= input$choice2)   +
+            geom_line(data = data_int() , aes(x = data_int()[,input$choice1],
+                                              y = data_int()[,input$choice2]))  +
+            theme (legend.position = "none") + ggtitle(input$exp_options)
+    })
     
     # Creat arima outputs
     output$arima <-  renderPrint({
@@ -422,7 +471,14 @@ server <- function(input, output,session) {
             geom_line(data = data_int() , aes(x = data_int()[,input$choice1],
                                               y = data_int()[,input$choice2]))  +
             theme (legend.position = "none") + ggtitle(paste('Arima: (',
-                        input$p, input$d, input$q, ')'))
+                                                             input$p, input$d, input$q, ')'))
+    })
+    
+    # Resid output
+    output$resid <- renderPlotly({
+        ggplot(rs(), aes( x = rs()$date2, y = rs()$res1)) + geom_point() +
+            labs(x=input$choice1, y= input$choice2) +
+            ggtitle('Time Series Linear Fit Residuals')
     })
         
 }
